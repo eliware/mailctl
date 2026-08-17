@@ -1,0 +1,41 @@
+{
+  "name": "@eliware/mailctl",
+  "version": "0.1.0",
+  "description": "Command-line client for Eliware Mail.",
+  "type": "module",
+  "private": false,
+  "bin": {
+    "mailctl": "./mailctl.mjs"
+  },
+  "files": [
+    "mailctl.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
+    "lint": "npx oxlint .",
+    "pack:check": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=26"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "oxlint": "^1.78.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/?(*.)+(spec|test).mjs"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/eliware/mailctl.git"
+  },
+  "license": "MIT"
+}
