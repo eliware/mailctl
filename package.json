@@ -1,11 +1,19 @@
 {
   "name": "@eliware/mailctl",
   "version": "0.1.0",
-  "description": "Command-line client for Eliware Mail.",
+  "description": "Non-interactive MariaDB and RabbitMQ mail CLI for humans and AI agents.",
+  "keywords": [
+    "mail",
+    "email",
+    "cli",
+    "mariadb",
+    "rabbitmq",
+    "ai-agents"
+  ],
   "type": "module",
   "private": false,
   "bin": {
-    "mailctl": "./mailctl.mjs"
+    "mailctl": "mailctl.mjs"
   },
   "files": [
     "mailctl.mjs",
@@ -25,7 +33,7 @@
   },
   "devDependencies": {
     "jest": "^30.4.2",
-    "oxlint": "^1.78.0"
+    "oxlint": "^1.79.0"
   },
   "jest": {
     "testEnvironment": "node",
@@ -39,6 +47,10 @@
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/eliware/mailctl.git"
+  },
+  "homepage": "https://github.com/eliware/mailctl#readme",
+  "bugs": {
+    "url": "https://github.com/eliware/mailctl/issues"
   },
   "license": "MIT",
   "dependencies": {

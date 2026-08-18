@@ -5,7 +5,7 @@ import { help } from "../src/help.mjs";
 describe("mailctl CLI contract", () => {
   test("package exposes a standalone executable", async () => {
     const packageJson = await import("../package.json", { with: { type: "json" } });
-    expect(packageJson.default.bin.mailctl).toBe("./mailctl.mjs");
+    expect(packageJson.default.bin.mailctl).toBe("mailctl.mjs");
   });
 
   test("documents sent-mail inspection commands", async () => {
