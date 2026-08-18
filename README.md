@@ -15,9 +15,10 @@ npm install --global @eliware/mailctl
 
 ## Configuration
 
-Copy `.env.example` to `.env` and set the direct MariaDB and RabbitMQ
+Create `~/.config/mailctl/.env` and set the direct MariaDB and RabbitMQ
 connection URLs. `MAIL_STORAGE_PATH` must point to the shared attachment
-volume. `.env` is local-only and must never be committed.
+volume. Existing environment variables take precedence over values in that
+file. The configuration file is local-only and must never be committed.
 
 The CLI is designed for one-shot operator and AI-agent use. It never starts a
 consumer, prompts for input, or connects to RabbitMQ for read/delete commands.
@@ -85,8 +86,8 @@ support `--dry-run`. `health` returns component status and exits with code 2
 when degraded. With `--json`, failures are emitted as one JSON object on
 stderr with a stable `error` and `code` shape.
 
-The local `.env` file supplies direct MariaDB, RabbitMQ, and storage
-configuration and is intentionally ignored by Git.
+The per-user `~/.config/mailctl/.env` file supplies direct MariaDB, RabbitMQ,
+and storage configuration and is intentionally outside the package.
 
 ## Development
 

@@ -9,6 +9,7 @@
   },
   "files": [
     "mailctl.mjs",
+    "src",
     "README.md",
     "LICENSE"
   ],
