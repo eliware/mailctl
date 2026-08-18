@@ -1,5 +1,13 @@
 # Release notes
 
+## 1.2.0 — 2026-08-18
+
+- Added package-version-aware schema compatibility checks.
+- Preserved support for older schemas and added upgrade suggestions for newer
+  database schemas.
+- Confirmed full-text search and existing SQL usage align with the mail
+  service's 0.1.8 schema additions.
+
 ## Unreleased
 
 - Refactored the CLI into independently testable source modules.

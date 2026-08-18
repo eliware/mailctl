@@ -1,17 +1,27 @@
 #!/usr/bin/env node
-import './src/config.mjs';
-import process from 'node:process';
-import packageJson from './package.json' with { type: 'json' };
-import { log, registerHandlers, registerSignals } from '@eliware/common';
-import { parseArgs, required } from './src/args.mjs';
-import { help } from './src/help.mjs';
-import { dbConnection } from './src/runtime.mjs';
-import { output } from './src/output.mjs';
-import { listMessages, readMessages, searchMail, thread } from './src/inbound.mjs';
-import { listSent, readSent, updateOutbound, send } from './src/outbound.mjs';
-import { attachmentList, saveAttachments, saveSentAttachments } from './src/attachments.mjs';
-import { deleteMessages } from './src/delete.mjs';
-import { health } from './src/health.mjs';
+import "./src/config.mjs";
+import process from "node:process";
+import packageJson from "./package.json" with { type: "json" };
+import { log, registerHandlers, registerSignals } from "@eliware/common";
+import { parseArgs, required } from "./src/args.mjs";
+import { help } from "./src/help.mjs";
+import { dbConnection } from "./src/runtime.mjs";
+import { output } from "./src/output.mjs";
+import {
+  listMessages,
+  readMessages,
+  searchMail,
+  thread,
+} from "./src/inbound.mjs";
+import { listSent, readSent, updateOutbound, send } from "./src/outbound.mjs";
+import {
+  attachmentList,
+  saveAttachments,
+  saveSentAttachments,
+} from "./src/attachments.mjs";
+import { deleteMessages } from "./src/delete.mjs";
+import { health } from "./src/health.mjs";
+import { assertSchemaVersion } from "./src/schema.mjs";
 
 registerHandlers({ log });
 registerSignals({ log, exitCode: 1, shutdownHook: async () => {} });
@@ -19,33 +29,63 @@ registerSignals({ log, exitCode: 1, shutdownHook: async () => {} });
 async function main() {
   const { positionals, options } = parseArgs(process.argv.slice(2));
   if (options.version) return console.log(packageJson.version);
-  if (positionals[0] === 'help') return console.log(help(positionals.slice(1)));
-  if (!positionals.length || options.help) return console.log(help(positionals));
+  if (positionals[0] === "help") return console.log(help(positionals.slice(1)));
+  if (!positionals.length || options.help)
+    return console.log(help(positionals));
   const [command, ...ids] = positionals;
   const db = await dbConnection();
   try {
-    if (command === 'list') return await listMessages(options, db);
-    if (command === 'headers') return await readMessages(ids, options, db, false);
-    if (command === 'read') return await readMessages(ids, options, db, true);
-    if (command === 'sent') return await listSent(options, db);
-    if (command === 'sent-read') return await readSent(ids, options, db);
-    if (command === 'search') return await searchMail(required({ query: ids[0] }, 'query'), options, db);
-    if (command === 'thread') return await thread(ids[0], options, db);
-    if (command === 'retry' || command === 'cancel') return await updateOutbound(ids, command, options, db);
-    if (command === 'health') return await health(options, db);
-    if (command === 'attachments') return await attachmentList(ids[0], options, db);
-    if (command === 'save-attachments') return await saveAttachments(ids[0], ids[1] ?? options.directory, options, db);
-    if (command === 'save-sent-attachments') return await saveSentAttachments(ids[0], ids[1] ?? options.directory, options, db);
-    if (command === 'domains') { const [rows] = await db.query('SELECT domain_id,name,status,created_at,updated_at FROM domains ORDER BY name'); return output(rows, options); }
-    if (command === 'delete') return await deleteMessages(ids, options, db);
-    if (command === 'send') return await send(options, db);
+    await assertSchemaVersion(db, { packageVersion: packageJson.version, log });
+    if (command === "list") return await listMessages(options, db);
+    if (command === "headers")
+      return await readMessages(ids, options, db, false);
+    if (command === "read") return await readMessages(ids, options, db, true);
+    if (command === "sent") return await listSent(options, db);
+    if (command === "sent-read") return await readSent(ids, options, db);
+    if (command === "search")
+      return await searchMail(
+        required({ query: ids[0] }, "query"),
+        options,
+        db,
+      );
+    if (command === "thread") return await thread(ids[0], options, db);
+    if (command === "retry" || command === "cancel")
+      return await updateOutbound(ids, command, options, db);
+    if (command === "health") return await health(options, db);
+    if (command === "attachments")
+      return await attachmentList(ids[0], options, db);
+    if (command === "save-attachments")
+      return await saveAttachments(
+        ids[0],
+        ids[1] ?? options.directory,
+        options,
+        db,
+      );
+    if (command === "save-sent-attachments")
+      return await saveSentAttachments(
+        ids[0],
+        ids[1] ?? options.directory,
+        options,
+        db,
+      );
+    if (command === "domains") {
+      const [rows] = await db.query(
+        "SELECT domain_id,name,status,created_at,updated_at FROM domains ORDER BY name",
+      );
+      return output(rows, options);
+    }
+    if (command === "delete") return await deleteMessages(ids, options, db);
+    if (command === "send") return await send(options, db);
     throw new Error(`unknown command: ${command}`);
-  } finally { await db.end(); }
+  } finally {
+    await db.end();
+  }
 }
 
 main().catch((error) => {
   const { options } = parseArgs(process.argv.slice(2));
-  const payload = { error: error.message, code: error.code ?? 'MAILCTL_ERROR' };
-  if (options.json) console.error(JSON.stringify(payload)); else log.error('mailctl command failed', payload);
+  const payload = { error: error.message, code: error.code ?? "MAILCTL_ERROR" };
+  if (options.json) console.error(JSON.stringify(payload));
+  else log.error("mailctl command failed", payload);
   process.exitCode = 1;
 });

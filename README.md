@@ -20,6 +20,19 @@ connection URLs. `MAIL_STORAGE_PATH` must point to the shared attachment
 volume. Existing environment variables take precedence over values in that
 file. The configuration file is local-only and must never be committed.
 
+Configuration contract:
+
+| Variable            | Required                          | Default | Format and effect                                                                    | Sensitive                   |
+| ------------------- | --------------------------------- | ------- | ------------------------------------------------------------------------------------ | --------------------------- |
+| `MYSQL_URL`         | For database commands             | None    | `mysql://USER:PASSWORD@HOST/DATABASE`; selects the MariaDB endpoint and schema       | Yes                         |
+| `RABBITMQ_URL`      | For `send`, `retry`, and `cancel` | None    | `amqp://USER:PASSWORD@HOST/VHOST`; selects the RabbitMQ vhost used for outbound work | Yes                         |
+| `MAIL_STORAGE_PATH` | For attachment commands           | None    | Absolute readable/writable directory containing hashed attachment objects            | No, but deployment-specific |
+
+The CLI validates configuration when a command opens the relevant dependency.
+Values may be supplied by the process environment or the per-user dotenv file;
+process environment values take precedence. Never print these URLs or commit
+them.
+
 The CLI is designed for one-shot operator and AI-agent use. It never starts a
 consumer, prompts for input, or connects to RabbitMQ for read/delete commands.
 Add `--json` to every command for machine-readable output. Message bodies and
@@ -97,6 +110,16 @@ npm test
 npm run lint
 npm run pack
 ```
+
+Live service checks are deliberately separate from the default test command:
+
+```bash
+npm run test:integration
+```
+
+That command requires disposable MariaDB, RabbitMQ, and attachment-storage
+resources configured as described in [`docs/integration-testing.md`](docs/integration-testing.md).
+It is not run by CI unless explicitly enabled.
 
 The `v*` tag workflow publishes the package to npm with provenance after
 tests, lint, and package validation pass. Publishing requires the repository's
