@@ -1,63 +1,63 @@
 {
-  "name": "@eliware/mailctl",
-  "version": "0.1.0",
-  "description": "Non-interactive MariaDB and RabbitMQ mail CLI for humans and AI agents.",
-  "keywords": [
-    "mail",
-    "email",
-    "cli",
-    "mariadb",
-    "rabbitmq",
-    "ai-agents"
-  ],
-  "type": "module",
-  "private": false,
-  "bin": {
-    "mailctl": "mailctl.mjs"
-  },
-  "files": [
-    "mailctl.mjs",
-    "src",
-    "README.md",
-    "LICENSE"
-  ],
-  "scripts": {
-    "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
-    "test:gaps": "npm test 2>&1 | grep '|' | grep -vF '|     100 |      100 |     100 |     100 |'",
-    "lint": "npx oxlint .",
-    "pack": "npm pack --dry-run",
-    "pack:check": "npm run pack"
-  },
-  "engines": {
-    "node": ">=26"
-  },
-  "devDependencies": {
-    "jest": "^30.4.2",
-    "oxlint": "^1.79.0"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/?(*.)+(spec|test).mjs"
-    ]
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/eliware/mailctl.git"
-  },
-  "homepage": "https://github.com/eliware/mailctl#readme",
-  "bugs": {
-    "url": "https://github.com/eliware/mailctl/issues"
-  },
-  "license": "MIT",
-  "dependencies": {
-    "@eliware/common": "^1.1.8",
-    "@eliware/mysql": "^1.1.6",
-    "@eliware/rabbitmq": "^1.1.8",
-    "@eliware/snowflake": "^1.1.5",
-    "dotenv": "^17.4.2"
-  }
+    "name": "@eliware/mailctl",
+    "version": "0.1.1",
+    "description": "Non-interactive MariaDB and RabbitMQ mail CLI for humans and AI agents.",
+    "keywords": [
+        "mail",
+        "email",
+        "cli",
+        "mariadb",
+        "rabbitmq",
+        "ai-agents"
+    ],
+    "type": "module",
+    "private": false,
+    "bin": {
+        "mailctl": "mailctl.mjs"
+    },
+    "files": [
+        "mailctl.mjs",
+        "src",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
+        "test:gaps": "npm test 2>&1 | grep '|' | grep -vF '|     100 |      100 |     100 |     100 |'",
+        "lint": "npx oxlint .",
+        "pack": "npm pack --dry-run",
+        "pack:check": "npm run pack"
+    },
+    "engines": {
+        "node": ">=26"
+    },
+    "devDependencies": {
+        "jest": "^30.4.2",
+        "oxlint": "^1.79.0"
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "testMatch": [
+            "**/?(*.)+(spec|test).mjs"
+        ]
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/eliware/mailctl.git"
+    },
+    "homepage": "https://github.com/eliware/mailctl#readme",
+    "bugs": {
+        "url": "https://github.com/eliware/mailctl/issues"
+    },
+    "license": "MIT",
+    "dependencies": {
+        "@eliware/common": "^1.1.8",
+        "@eliware/mysql": "^1.1.6",
+        "@eliware/rabbitmq": "^1.1.8",
+        "@eliware/snowflake": "^1.1.5",
+        "dotenv": "^17.4.2"
+    }
 }
