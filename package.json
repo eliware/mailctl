@@ -14,8 +14,10 @@
   ],
   "scripts": {
     "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
+    "test:gaps": "npm test 2>&1 | grep '|' | grep -vF '|     100 |      100 |     100 |     100 |'",
     "lint": "npx oxlint .",
-    "pack:check": "npm pack --dry-run"
+    "pack": "npm pack --dry-run",
+    "pack:check": "npm run pack"
   },
   "engines": {
     "node": ">=26"
