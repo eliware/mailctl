@@ -37,5 +37,12 @@
     "type": "git",
     "url": "git+ssh://git@github.com/eliware/mailctl.git"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@eliware/common": "^1.1.8",
+    "@eliware/mysql": "^1.1.6",
+    "@eliware/rabbitmq": "^1.1.8",
+    "@eliware/snowflake": "^1.1.5",
+    "dotenv": "^17.4.2"
+  }
 }
