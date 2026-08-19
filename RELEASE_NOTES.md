@@ -1,5 +1,13 @@
 # Release notes
 
+## 1.2.7 — 2026-08-19
+
+- Added durable event-outbox schema migration support for reliable mail event publication.
+- Added Discord correlation and deletion provenance schema migrations for outbound mail.
+- Enqueued soft-delete events for inbound and outbound messages.
+- Added the `npm run audit` production dependency audit command.
+- Restored migration and deletion coverage to strict 100×4.
+
 ## 1.2.5 — 2026-08-19
 
 - Moved versioned database migrations and the migration runner into mailctl.
