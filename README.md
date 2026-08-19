@@ -73,7 +73,8 @@ mailctl health
 mailctl attachments MESSAGE_ID
 mailctl save-attachments MESSAGE_ID DIRECTORY
 mailctl send
-mailctl delete MESSAGE_ID... --yes
+mailctl delete MESSAGE_ID_OR_OUTBOUND_ID... --yes
+mailctl migrate --yes
 mailctl domains
 ```
 
@@ -89,6 +90,16 @@ status. Use `--status queued`, `--status retryable`, `--status failed`, or
 outbound message, headers, body, attachments, delivery records, and SMTP
 attempt history. These commands are read-only and are suitable for agent
 monitoring and reconciliation.
+
+`delete` soft-deletes inbound or outbound messages by setting `deleted_at`;
+it never removes message records or relational data. Deleted messages are
+excluded from listing, reading, searching, threading, attachment export,
+retry, and cancellation commands.
+
+`migrate` is the schema authority for the mail service. It applies eligible
+semver-prefixed ESM migrations while holding a MariaDB advisory lock. Run it
+deliberately with `--yes` or `MIGRATE_CONFIRM=apply`; it never runs as a side
+effect of another command.
 
 `search` searches inbound and outbound headers and bodies. Results include a
 MariaDB FULLTEXT relevance score and rank content matches ahead of fallback

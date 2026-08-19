@@ -17,7 +17,7 @@ import { dateFilter, limitValue, required, values } from "./args.mjs";
 const gzipAsync = promisify(gzip);
 
 export async function listSent(options, db) {
-  const where = ["1=1"];
+  const where = ["o.deleted_at IS NULL"];
   const params = [];
   if (options.from) {
     where.push("o.from_address LIKE ?");
@@ -51,7 +51,7 @@ export async function readSent(ids, options, db) {
   const result = [];
   for (const id of ids) {
     const [[message]] = await db.query(
-      "SELECT * FROM outbound_messages WHERE outbound_id=?",
+      "SELECT * FROM outbound_messages WHERE outbound_id=? AND deleted_at IS NULL",
       [id],
     );
     if (!message) throw new Error(`sent message not found: ${id}`);
@@ -103,11 +103,11 @@ export async function updateOutbound(ids, action, options, db) {
     for (const id of ids) {
       const status = action === "cancel" ? "canceled" : "retryable";
       await connection.query(
-        "UPDATE outbound_deliveries SET status=? WHERE outbound_id=? AND status IN ('queued','retryable','failed')",
+        "UPDATE outbound_deliveries d JOIN outbound_messages o ON o.outbound_id=d.outbound_id SET d.status=? WHERE d.outbound_id=? AND o.deleted_at IS NULL AND d.status IN ('queued','retryable','failed')",
         [status, id],
       );
       await connection.query(
-        "UPDATE outbound_messages SET status=? WHERE outbound_id=? AND status NOT IN ('sent','canceled')",
+        "UPDATE outbound_messages SET status=? WHERE outbound_id=? AND deleted_at IS NULL AND status NOT IN ('sent','canceled')",
         [action === "cancel" ? "canceled" : "queued", id],
       );
     }

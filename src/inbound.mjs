@@ -29,7 +29,7 @@ export async function readMessages(ids, options, db, includeBody = true) {
 export async function searchMail(query, options, db) {
   const needle = `%${query}%`; const limit = limitValue(options.limit);
   const [inbound] = await db.query(`SELECT 'inbound' kind, m.message_id id, m.envelope_sender sender, m.subject, m.received_at timestamp, MATCH(m.subject, m.body_text, m.body_html) AGAINST (? IN NATURAL LANGUAGE MODE) relevance FROM messages m WHERE m.deleted_at IS NULL AND (MATCH(m.subject, m.body_text, m.body_html) AGAINST (? IN BOOLEAN MODE) OR m.envelope_sender LIKE ? OR m.subject LIKE ? OR m.headers_json LIKE ?)`, [query, query, needle, needle, needle]);
-  const [outbound] = await db.query(`SELECT 'outbound' kind, o.outbound_id id, o.from_address sender, o.subject, o.created_at timestamp, MATCH(o.subject, o.body_text, o.body_html) AGAINST (? IN NATURAL LANGUAGE MODE) relevance FROM outbound_messages o WHERE (MATCH(o.subject, o.body_text, o.body_html) AGAINST (? IN BOOLEAN MODE) OR o.from_address LIKE ? OR o.subject LIKE ? OR o.headers_json LIKE ? OR EXISTS (SELECT 1 FROM outbound_deliveries d WHERE d.outbound_id=o.outbound_id AND d.recipient LIKE ?))`, [query, query, needle, needle, needle, needle, needle]);
+  const [outbound] = await db.query(`SELECT 'outbound' kind, o.outbound_id id, o.from_address sender, o.subject, o.created_at timestamp, MATCH(o.subject, o.body_text, o.body_html) AGAINST (? IN NATURAL LANGUAGE MODE) relevance FROM outbound_messages o WHERE o.deleted_at IS NULL AND (MATCH(o.subject, o.body_text, o.body_html) AGAINST (? IN BOOLEAN MODE) OR o.from_address LIKE ? OR o.subject LIKE ? OR o.headers_json LIKE ? OR EXISTS (SELECT 1 FROM outbound_deliveries d WHERE d.outbound_id=o.outbound_id AND d.recipient LIKE ?))`, [query, query, needle, needle, needle, needle, needle]);
   output([...inbound, ...outbound].sort((a, b) => Number(b.relevance) - Number(a.relevance) || new Date(b.timestamp) - new Date(a.timestamp)).slice(0, limit), options);
 }
 
@@ -39,7 +39,7 @@ export async function thread(id, options, db) {
   let headers = {}; try { headers = JSON.parse(message.headers_json || '{}'); } catch {}
   const refs = [headers['Message-ID'], headers['In-Reply-To'], headers.References].filter(Boolean).join(' ');
   if (!refs) return output([], options);
-  const [inbound] = await db.query("SELECT message_id id, 'inbound' kind, envelope_sender sender, subject, received_at timestamp FROM messages WHERE headers_json LIKE ? ORDER BY received_at", [`%${refs}%`]);
-  const [outbound] = await db.query("SELECT outbound_id id, 'outbound' kind, from_address sender, subject, created_at timestamp FROM outbound_messages WHERE headers_json LIKE ? ORDER BY created_at", [`%${refs}%`]);
+  const [inbound] = await db.query("SELECT message_id id, 'inbound' kind, envelope_sender sender, subject, received_at timestamp FROM messages WHERE deleted_at IS NULL AND headers_json LIKE ? ORDER BY received_at", [`%${refs}%`]);
+  const [outbound] = await db.query("SELECT outbound_id id, 'outbound' kind, from_address sender, subject, created_at timestamp FROM outbound_messages WHERE deleted_at IS NULL AND headers_json LIKE ? ORDER BY created_at", [`%${refs}%`]);
   output([...inbound, ...outbound], options);
 }

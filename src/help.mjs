@@ -9,11 +9,12 @@ export const commandHelp = {
   retry: 'Republish retryable outbound deliveries.\n\nUSAGE\n  mailctl retry OUTBOUND_ID... --yes\n  mailctl retry OUTBOUND_ID... --dry-run --json\n',
   cancel: 'Cancel queued outbound delivery work.\n\nUSAGE\n  mailctl cancel OUTBOUND_ID... --yes\n',
   health: 'Check MariaDB, RabbitMQ, and shared storage.\n\nUSAGE\n  mailctl health [--json]\n',
+  migrate: 'Apply eligible versioned MariaDB migrations.\n\nUSAGE\n  mailctl migrate --yes [--json]\n  MIGRATE_CONFIRM=apply mailctl migrate [--json]\n',
   attachments: 'List inbound attachment metadata.\n\nUSAGE\n  mailctl attachments MESSAGE_ID [--json]\n',
   'save-attachments': 'Extract inbound attachments.\n\nUSAGE\n  mailctl save-attachments MESSAGE_ID DIRECTORY [--json]\n',
   'save-sent-attachments': 'Extract outbound attachments.\n\nUSAGE\n  mailctl save-sent-attachments OUTBOUND_ID DIRECTORY [--json]\n',
   send: 'Queue outbound mail directly through MariaDB and RabbitMQ.\n\nUSAGE\n  mailctl send --sender ADDRESS --recipient ADDRESS --subject TEXT --text TEXT [flags]\n\nUse --json and --idempotency for agent workflows.\n',
-  delete: 'Delete inbound messages and relational references.\n\nUSAGE\n  mailctl delete MESSAGE_ID... --yes\n  mailctl delete --query TEXT --yes\n',
+  delete: 'Soft-delete inbound or outbound messages.\n\nUSAGE\n  mailctl delete MESSAGE_ID_OR_OUTBOUND_ID... --yes\n  mailctl delete --query TEXT --yes\n',
   domains: 'List managed domains.\n\nUSAGE\n  mailctl domains [--json]\n',
 };
 
@@ -24,7 +25,7 @@ export function help(positionals = []) {
 
 Commands:
   list, headers, read, sent, sent-read, search, thread
-  retry, cancel, health, attachments, save-attachments
+  retry, cancel, health, migrate, attachments, save-attachments
   save-sent-attachments, send, delete, domains
 
 Options:

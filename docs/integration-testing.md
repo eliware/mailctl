@@ -20,7 +20,7 @@ cleanup.
 
 ## What to verify
 
-- MariaDB connectivity, schema-version compatibility, and read queries.
+- MariaDB connectivity and read queries.
 - RabbitMQ connectivity and confirmation of an outbound publish.
 - Attachment hashing, compression, deduplication, and cleanup in the shared
   storage path.

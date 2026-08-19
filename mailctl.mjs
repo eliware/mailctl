@@ -19,9 +19,9 @@ import {
   saveAttachments,
   saveSentAttachments,
 } from "./src/attachments.mjs";
-import { deleteMessages } from "./src/delete.mjs";
+import { deleteMail } from "./src/delete.mjs";
 import { health } from "./src/health.mjs";
-import { assertSchemaVersion } from "./src/schema.mjs";
+import { runMigrations } from "./src/migrations.mjs";
 
 registerHandlers({ log });
 registerSignals({ log, exitCode: 1, shutdownHook: async () => {} });
@@ -35,7 +35,6 @@ async function main() {
   const [command, ...ids] = positionals;
   const db = await dbConnection();
   try {
-    await assertSchemaVersion(db, { packageVersion: packageJson.version, log });
     if (command === "list") return await listMessages(options, db);
     if (command === "headers")
       return await readMessages(ids, options, db, false);
@@ -52,6 +51,12 @@ async function main() {
     if (command === "retry" || command === "cancel")
       return await updateOutbound(ids, command, options, db);
     if (command === "health") return await health(options, db);
+    if (command === "migrate") {
+      if (!options.yes && process.env.MIGRATE_CONFIRM !== "apply")
+        throw new Error("migration writes require --yes or MIGRATE_CONFIRM=apply");
+      const result = await runMigrations({ pool: db, confirm: true });
+      return output(result, options);
+    }
     if (command === "attachments")
       return await attachmentList(ids[0], options, db);
     if (command === "save-attachments")
@@ -74,7 +79,7 @@ async function main() {
       );
       return output(rows, options);
     }
-    if (command === "delete") return await deleteMessages(ids, options, db);
+    if (command === "delete") return await deleteMail(ids, options, db);
     if (command === "send") return await send(options, db);
     throw new Error(`unknown command: ${command}`);
   } finally {
