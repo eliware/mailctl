@@ -8,7 +8,7 @@ const LOCK_NAME = 'eliware-mail-schema-migration';
 
 export async function readMigration(name) { return readFile(new URL(name, migrationsPath), 'utf8'); }
 export function splitMigration(sql) { return sql.replace(/^\s*--.*$/gm, '').split(';').map((statement) => statement.trim()).filter(Boolean); }
-function compareVersions(left, right) { const a = String(left).replace(/^v/, '').split('.').map(Number); const b = String(right).replace(/^v/, '').split('.').map(Number); for (let index = 0; index < 3; index += 1) { if ((a[index] ?? 0) !== (b[index] ?? 0)) return (a[index] ?? 0) - (b[index] ?? 0); } return 0; }
+export function compareVersions(left, right) { const a = String(left).replace(/^v/, '').split('.').map(Number); const b = String(right).replace(/^v/, '').split('.').map(Number); for (let index = 0; index < 3; index += 1) { if ((a[index] ?? 0) !== (b[index] ?? 0)) return (a[index] ?? 0) - (b[index] ?? 0); } return 0; }
 async function packageVersion() { return JSON.parse(await readFile(packagePath, 'utf8')).version; }
 export function migrationTargetVersion(name, currentVersion) { return name.match(/^(\d+\.\d+\.\d+)-/)?.[1] ?? currentVersion; }
 async function loadMigration(name) {

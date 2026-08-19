@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { applyMigration, migrationTargetVersion, mysqlEnvironment, readMigration, runMigrations, splitMigration } from '../src/migrations.mjs';
+import { applyMigration, compareVersions, migrationTargetVersion, mysqlEnvironment, readMigration, runMigrations, splitMigration } from '../src/migrations.mjs';
 
 const poolFor = (names = []) => ({ async query(sql) {
   if (sql.startsWith('SELECT GET_LOCK')) return [[{ acquired: 1 }]];
@@ -8,14 +8,27 @@ const poolFor = (names = []) => ({ async query(sql) {
 } });
 
 describe('package-locked migrations', () => {
+  it('compares complete and partial semantic versions', () => {
+    expect(compareVersions('1.2.3', '1.2.3')).toBe(0);
+    expect(compareVersions('2.0.0', '1.9.9')).toBeGreaterThan(0);
+    expect(compareVersions('1.2.0', '1.3.0')).toBeLessThan(0);
+    expect(compareVersions('1', '1.0.0')).toBe(0);
+    expect(compareVersions('1.2', '1.2.0')).toBe(0);
+    expect(compareVersions('1.2.3', '1.2')).toBeGreaterThan(0);
+    expect(compareVersions('1.2.0', '1')).toBeGreaterThan(0);
+    expect(compareVersions('1.2', '1.2.3')).toBeLessThan(0);
+    expect(compareVersions('v1.2.3', '1.2.4')).toBeLessThan(0);
+  });
   it('splits SQL comments and reads ESM migrations', async () => {
     expect(splitMigration('-- comment\nSELECT 1;\n\nSELECT 2;')).toEqual(['SELECT 1', 'SELECT 2']);
     await expect(readMigration('1.2.0-schema-version-marker.mjs')).resolves.toContain('export async function migrate');
   });
   it('parses MySQL connection URLs', () => {
     expect(mysqlEnvironment('mysql://mail%20user:secret%21@db.example.test:3307/mail%20db')).toEqual({ MYSQL_HOST: 'db.example.test', MYSQL_PORT: '3307', MYSQL_USER: 'mail user', MYSQL_PASSWORD: 'secret!', MYSQL_DATABASE: 'mail db' });
+    expect(mysqlEnvironment('mysql://user:pass@db.example.test/mail')).toMatchObject({ MYSQL_PORT: '3306', MYSQL_DATABASE: 'mail' });
   });
   it('requires confirmation and a database', async () => {
+    await expect(runMigrations()).rejects.toThrow('MIGRATE_CONFIRM=apply');
     await expect(runMigrations({ confirm: false })).rejects.toThrow('MIGRATE_CONFIRM=apply');
     await expect(runMigrations({ confirm: 'apply' })).rejects.toThrow('MYSQL_URL is required');
   });
@@ -23,10 +36,16 @@ describe('package-locked migrations', () => {
     const pool = poolFor();
     await expect(runMigrations({ pool, confirm: 'apply', version: '1.1.0', names: ['1.2.0-schema-version-marker.mjs'] })).resolves.toMatchObject({ deferred: [{ name: '1.2.0-schema-version-marker.mjs', target: '1.2.0' }] });
     expect(migrationTargetVersion('2.0.0-future.mjs', '1.0.0')).toBe('2.0.0');
+    await expect(runMigrations({ pool: poolFor(), confirm: 'apply', version: '1', names: ['2.0.0-future.mjs'] })).resolves.toMatchObject({ deferred: [{ target: '2.0.0' }] });
   });
   it('uses the running version for unversioned names and accepts boolean confirmation', async () => {
     expect(migrationTargetVersion('unversioned.mjs', '0.1.8')).toBe('0.1.8');
     await expect(runMigrations({ pool: poolFor(), confirm: true, version: '1.0.0', names: [] })).resolves.toMatchObject({ applied: [], deferred: [] });
+    await expect(runMigrations({ pool: poolFor(), confirm: 'apply', names: [] })).resolves.toMatchObject({ packageVersion: '1.2.5', applied: [], deferred: [] });
+  });
+  it('suppresses advisory-lock release errors', async () => {
+    const pool = { async query(sql) { if (sql.startsWith('SELECT GET_LOCK')) return [[{ acquired: 1 }]]; if (sql.startsWith('SELECT RELEASE_LOCK')) throw new Error('release failed'); if (sql.startsWith('SELECT name FROM schema_migrations')) return [[]]; return [[]]; } };
+    await expect(runMigrations({ pool, confirm: 'apply', version: '1.2.5', names: [] })).resolves.toMatchObject({ applied: [], deferred: [] });
   });
   it('executes migration modules', async () => {
     const queries = []; const pool = { async query(sql) { queries.push(sql); } };
