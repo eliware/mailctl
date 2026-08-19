@@ -41,7 +41,7 @@ describe('package-locked migrations', () => {
   it('uses the running version for unversioned names and accepts boolean confirmation', async () => {
     expect(migrationTargetVersion('unversioned.mjs', '0.1.8')).toBe('0.1.8');
     await expect(runMigrations({ pool: poolFor(), confirm: true, version: '1.0.0', names: [] })).resolves.toMatchObject({ applied: [], deferred: [] });
-    await expect(runMigrations({ pool: poolFor(), confirm: 'apply', names: [] })).resolves.toMatchObject({ packageVersion: '1.2.5', applied: [], deferred: [] });
+    await expect(runMigrations({ pool: poolFor(), confirm: 'apply', names: [] })).resolves.toMatchObject({ packageVersion: '1.2.7', applied: [], deferred: [] });
   });
   it('suppresses advisory-lock release errors', async () => {
     const pool = { async query(sql) { if (sql.startsWith('SELECT GET_LOCK')) return [[{ acquired: 1 }]]; if (sql.startsWith('SELECT RELEASE_LOCK')) throw new Error('release failed'); if (sql.startsWith('SELECT name FROM schema_migrations')) return [[]]; return [[]]; } };

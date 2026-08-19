@@ -29,7 +29,7 @@ describe("delete command", () => {
     const calls = [];
     const connection = {
       beginTransaction: async () => calls.push("begin"),
-      query: async (...args) => calls.push(args),
+      query: async (...args) => { calls.push(args); return [[]]; },
       commit: async () => calls.push("commit"),
       rollback: async () => calls.push("rollback"),
       release: () => calls.push("release"),
@@ -66,7 +66,12 @@ describe("delete command", () => {
     const queries = [];
     const connection = {
       beginTransaction: async () => {},
-      query: async (...args) => queries.push(args[0]),
+      query: async (...args) => {
+        queries.push(args[0]);
+        if (args[0].startsWith("SELECT message_id")) return [[{ message_id: "in-1", discord_message_id: "discord-in", discord_channel_id: "channel" }]];
+        if (args[0].startsWith("SELECT outbound_id")) return [[{ outbound_id: "out-1", discord_message_id: "discord-out", discord_channel_id: "channel" }]];
+        return [[]];
+      },
       commit: async () => {},
       rollback: async () => {},
       release: () => {},
@@ -77,5 +82,21 @@ describe("delete command", () => {
       expect.stringContaining("UPDATE messages SET deleted_at"),
       expect.stringContaining("UPDATE outbound_messages SET deleted_at"),
     ]));
+  });
+
+  test("does not enqueue Discord events without Discord correlation", async () => {
+    const queries = [];
+    const connection = {
+      beginTransaction: async () => {},
+      query: async (...args) => {
+        queries.push(args[0]);
+        if (args[0].startsWith("SELECT message_id")) return [[{ message_id: "in-1" }]];
+        if (args[0].startsWith("SELECT outbound_id")) return [[{ outbound_id: "out-1" }]];
+        return [[]];
+      },
+      commit: async () => {}, rollback: async () => {}, release: () => {},
+    };
+    await deleteMail(["id"], { yes: true, json: true }, { getConnection: async () => connection });
+    expect(queries.some((sql) => sql.includes("event_outbox"))).toBe(false);
   });
 });
