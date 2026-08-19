@@ -25,10 +25,10 @@
     "scripts": {
         "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
         "test:gaps": "npm test 2>&1 | grep '|' | grep -vF '|     100 |      100 |     100 |     100 |'",
-    "test:integration": "MAILCTL_INTEGRATION=1 npx --node-options=\"--experimental-vm-modules --no-warnings\" jest tests/integration --runInBand",
-    "lint": "npx oxlint .",
-    "audit": "npm audit --omit=dev --audit-level=moderate",
-    "pack": "npm pack --dry-run",
+        "test:integration": "MAILCTL_INTEGRATION=1 npx --node-options=\"--experimental-vm-modules --no-warnings\" jest tests/integration --runInBand",
+        "lint": "npx oxlint .",
+        "audit": "npm audit --omit=dev --audit-level=moderate",
+        "pack": "npm pack --dry-run",
         "pack:check": "npm run pack"
     },
     "engines": {
