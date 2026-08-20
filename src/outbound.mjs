@@ -90,6 +90,36 @@ export async function readSent(ids, options, db) {
   output(result.length === 1 ? result[0] : result, options);
 }
 
+export async function outboundStatus(ids, options, db) {
+  if (!ids.length) throw new Error('outbound-status requires at least one outbound ID');
+  const staleAfterMs = Number(process.env.MAIL_OUTBOUND_STALE_DELIVERY_MS ?? 300_000);
+  const result = [];
+  for (const id of ids) {
+    const [[message]] = await db.query('SELECT outbound_id, from_address, subject, status, created_at, completed_at FROM outbound_messages WHERE outbound_id=? AND deleted_at IS NULL', [id]);
+    if (!message) throw new Error(`outbound message not found: ${id}`);
+    const [deliveries] = await db.query('SELECT * FROM outbound_deliveries WHERE outbound_id=? ORDER BY recipient', [id]);
+    const [attempts] = await db.query('SELECT oa.*, d.recipient FROM outbound_attempts oa JOIN outbound_deliveries d ON d.delivery_id=oa.delivery_id WHERE d.outbound_id=? ORDER BY d.recipient, oa.attempt_number', [id]);
+    const byDelivery = new Map();
+    for (const attempt of attempts) byDelivery.set(attempt.delivery_id, attempt);
+    const now = Date.now();
+    result.push({
+      ...message,
+      stale_after_ms: staleAfterMs,
+      deliveries: deliveries.map((delivery) => {
+        const latestAttempt = byDelivery.get(delivery.delivery_id) ?? null;
+        const started = latestAttempt?.started_at ? new Date(latestAttempt.started_at).getTime() : 0;
+        return {
+          ...delivery,
+          latest_attempt: latestAttempt,
+          age_seconds: started ? Math.max(0, Math.floor((now - started) / 1000)) : null,
+          stale: delivery.status === 'sending' && started > 0 && now - started >= staleAfterMs,
+        };
+      }),
+    });
+  }
+  output(result.length === 1 ? result[0] : result, options);
+}
+
 export async function updateOutbound(ids, action, options, db) {
   if (!ids.length)
     throw new Error(`${action} requires at least one outbound ID`);

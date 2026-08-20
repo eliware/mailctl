@@ -101,6 +101,11 @@ semver-prefixed ESM migrations while holding a MariaDB advisory lock. Run it
 deliberately with `--yes` or `MIGRATE_CONFIRM=apply`; it never runs as a side
 effect of another command.
 
+Use `mailctl outbound-status OUTBOUND_ID --json` to inspect each recipient's
+delivery state, latest recorded SMTP attempt, elapsed attempt age, and whether
+the delivery is stale. This read-only diagnostic uses the
+`MAIL_OUTBOUND_STALE_DELIVERY_MS` threshold, five minutes by default.
+
 `search` searches inbound and outbound headers and bodies. Results include a
 MariaDB FULLTEXT relevance score and rank content matches ahead of fallback
 sender, subject, recipient, and header matches. `thread` follows

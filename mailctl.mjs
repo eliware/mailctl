@@ -13,7 +13,7 @@ import {
   searchMail,
   thread,
 } from "./src/inbound.mjs";
-import { listSent, readSent, updateOutbound, send } from "./src/outbound.mjs";
+import { listSent, readSent, outboundStatus, updateOutbound, send } from "./src/outbound.mjs";
 import {
   attachmentList,
   saveAttachments,
@@ -41,6 +41,7 @@ async function main() {
     if (command === "read") return await readMessages(ids, options, db, true);
     if (command === "sent") return await listSent(options, db);
     if (command === "sent-read") return await readSent(ids, options, db);
+    if (command === "outbound-status") return await outboundStatus(ids, options, db);
     if (command === "search")
       return await searchMail(
         required({ query: ids[0] }, "query"),

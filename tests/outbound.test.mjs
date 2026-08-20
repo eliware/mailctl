@@ -1,6 +1,6 @@
 import { describe, expect, jest, test } from '@jest/globals';
 import { writeFile } from 'node:fs/promises';
-import { listSent, readSent, send, updateOutbound } from '../src/outbound.mjs';
+import { listSent, readSent, outboundStatus, send, updateOutbound } from '../src/outbound.mjs';
 
 describe('outbound commands', () => {
   test('lists sent messages', async () => { await expect(listSent({ limit: 5 }, { query: async () => [[]] })).resolves.toBeUndefined(); });
@@ -21,6 +21,14 @@ describe('outbound commands', () => {
     } };
     await expect(readSent(['out-1'], { json: true }, db)).resolves.toBeUndefined();
   });
+  test('reports stale sending deliveries and latest attempts', async () => {
+    const db = { query: jest.fn()
+      .mockResolvedValueOnce([[{ outbound_id: 'out-1', status: 'queued', created_at: new Date() }]])
+      .mockResolvedValueOnce([[{ delivery_id: 'del-1', status: 'sending', recipient: 'user@example.test' }]])
+      .mockResolvedValueOnce([[{ delivery_id: 'del-1', attempt_number: 1, status: 'sending', started_at: new Date(Date.now() - 600_000) }]]) };
+    await expect(outboundStatus(['out-1'], { json: true }, db)).resolves.toBeUndefined();
+  });
+  test('requires an outbound ID for status', async () => { await expect(outboundStatus([], {}, {})).rejects.toThrow('outbound ID'); });
   test('previews retry without mutation', async () => { await expect(updateOutbound(['out-1'], 'retry', { 'dry-run': true, json: true }, {})).resolves.toBeUndefined(); });
   test('rejects sends from unmanaged domains', async () => {
     const db = { query: jest.fn().mockResolvedValue([[]]) };

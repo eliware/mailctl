@@ -4,6 +4,7 @@ export const commandHelp = {
   read: 'Read complete inbound headers, bodies, and attachment metadata.\n\nUSAGE\n  mailctl read MESSAGE_ID... [--json]\n',
   sent: 'List outbound messages and delivery status.\n\nUSAGE\n  mailctl sent [--status STATUS] [--limit N] [--json]\n',
   'sent-read': 'Read a sent message with bodies, attachments, deliveries, and attempts.\n\nUSAGE\n  mailctl sent-read OUTBOUND_ID... [--json]\n',
+  'outbound-status': 'Inspect outbound delivery state, latest SMTP attempts, age, and stale workers.\n\nUSAGE\n  mailctl outbound-status OUTBOUND_ID... [--json]\n\nA sending delivery is stale when its latest attempt exceeds MAIL_OUTBOUND_STALE_DELIVERY_MS (default 5 minutes).\n',
   search: 'Search inbound and outbound mail with FULLTEXT relevance ranking.\n\nUSAGE\n  mailctl search QUERY [--json]\n',
   thread: 'Follow Message-ID, In-Reply-To, and References headers.\n\nUSAGE\n  mailctl thread MESSAGE_ID [--json]\n',
   retry: 'Republish retryable outbound deliveries.\n\nUSAGE\n  mailctl retry OUTBOUND_ID... --yes\n  mailctl retry OUTBOUND_ID... --dry-run --json\n',
@@ -24,7 +25,7 @@ export function help(positionals = []) {
   return `mailctl - non-interactive direct MariaDB/RabbitMQ mail tool
 
 Commands:
-  list, headers, read, sent, sent-read, search, thread
+  list, headers, read, sent, sent-read, outbound-status, search, thread
   retry, cancel, health, migrate, attachments, save-attachments
   save-sent-attachments, send, delete, domains
 
