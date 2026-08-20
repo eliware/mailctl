@@ -42,3 +42,7 @@ git diff --check
 
 Live integration checks are opt-in. See `docs/integration-testing.md` and do
 not run them against production accidentally.
+- Do not over-engineer simple tasks.
+- Do not guess when confused.
+- Do not make random, pointless changes.
+- Check your own work before saying you're done.
