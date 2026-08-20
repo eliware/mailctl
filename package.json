@@ -1,6 +1,6 @@
 {
     "name": "@eliware/mailctl",
-    "version": "1.2.7",
+    "version": "1.2.8",
     "description": "Non-interactive MariaDB and RabbitMQ mail CLI for humans and AI agents.",
     "keywords": [
         "mail",
