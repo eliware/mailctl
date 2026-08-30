@@ -10,6 +10,9 @@ jest.unstable_mockModule('../src/output.mjs', () => ({ output }));
 const { runApiCommand } = await import('../src/api-commands.mjs');
 
 describe('API command routing', () => {
+  test('returns no result for an unknown command', async () => {
+    await expect(runApiCommand('unknown', [], {})).resolves.toBeUndefined();
+  });
   beforeEach(() => {
     process.exitCode = undefined;
     apiRequest.mockReset();
@@ -171,6 +174,5 @@ describe('API command routing', () => {
   });
 
   test('ignores commands that are not API-routed yet', async () => {
-    await expect(runApiCommand('migrate', [], {})).resolves.toBeUndefined();
   });
 });

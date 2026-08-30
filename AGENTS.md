@@ -3,8 +3,7 @@
 ## Purpose
 
 `mailctl` is a non-interactive CLI for reading, searching, sending, and
-managing mail directly through MariaDB, RabbitMQ, and the configured shared
-attachment storage. It does not use the mail web API.
+managing mail through the authenticated mail service REST API.
 
 ## Repository rules
 
@@ -20,8 +19,8 @@ attachment storage. It does not use the mail web API.
 ## Development
 
 - Use Node.js 26+ and native ESM.
-- Keep parsing, validation, database access, RabbitMQ publishing, attachment
-  storage, and output formatting in separate focused modules.
+- Keep parsing, validation, API access, attachment downloads, and output
+  formatting in separate focused modules.
 - Preserve stable JSON output and nonzero exit codes for automation.
 - Keep `--help` useful when invoked without arguments.
 - Require confirmation for destructive operations and preserve `--dry-run`.

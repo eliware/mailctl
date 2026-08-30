@@ -1,7 +1,7 @@
 {
     "name": "@eliware/mailctl",
     "version": "1.2.8",
-    "description": "Non-interactive MariaDB and RabbitMQ mail CLI for humans and AI agents.",
+    "description": "Non-interactive mail service REST API CLI for humans and AI agents.",
     "keywords": [
         "mail",
         "email",
@@ -18,14 +18,12 @@
     "files": [
         "mailctl.mjs",
         "src",
-        "migrations",
         "README.md",
         "LICENSE"
     ],
     "scripts": {
         "test": "eliware-test",
         "test:gaps": "eliware-test",
-        "test:integration": "MAILCTL_INTEGRATION=1 npx --node-options=\"--experimental-vm-modules --no-warnings\" jest tests/integration --runInBand",
         "lint": "eliware-test --lint",
         "audit": "npm audit --omit=dev --audit-level=moderate",
         "pack": "npm pack --dry-run",
@@ -56,10 +54,6 @@
     },
     "license": "MIT",
     "dependencies": {
-        "@eliware/common": "^1.1.8",
-        "@eliware/mysql": "^1.1.6",
-        "@eliware/rabbitmq": "^1.1.8",
-        "@eliware/snowflake": "^1.1.5",
-        "dotenv": "^17.4.2"
+        "@eliware/common": "^1.1.8"
     }
 }

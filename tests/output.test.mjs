@@ -14,6 +14,12 @@ describe('output', () => {
     expect(spy).toHaveBeenCalledWith('No results found.');
     spy.mockRestore();
   });
+  test('prints nonempty arrays as tables', () => {
+    const spy = jest.spyOn(console, 'table').mockImplementation(() => {});
+    output([{ id: '1' }], {});
+    expect(spy).toHaveBeenCalledWith([{ id: '1' }]);
+    spy.mockRestore();
+  });
   test('prints strings and objects for humans', () => {
     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
     output('hello', {});

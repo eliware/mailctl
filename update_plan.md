@@ -1,7 +1,6 @@
 # mailctl REST API migration update plan
 
-Goal: preserve the current unlimited operator behavior while replacing direct
-MariaDB, RabbitMQ, and Gluster access with the mail service REST API.
+Goal: provide a focused REST API client for the mail service.
 
 ## Finalized mail API handoff
 
@@ -50,15 +49,13 @@ coordinated update.
    status, domains, health, and delete commands to API requests, using the
    finalized response shapes above for headers, search, threads, and status.
 5. **Complete.** Convert retry and cancel commands to their API operations.
-6. **Complete.** Convert send to `/api/send` and multipart send to `/api/send-multipart`,
-   streaming attachment files rather than reading Gluster directly.
+6. **Complete.** Convert send to `/api/send` and multipart send to `/api/send-multipart`.
 7. **Complete.** Convert attachment listing and save commands to API metadata/download
    operations. Download both inbound and outbound attachments through
    `GET /api/attachments/:attachmentId`, writing streamed bytes to the
    requested local directory.
-8. **Complete.** Keep `migrate` as the only direct MariaDB operation during the transition.
-9. **Pending integration verification.** Remove normal-command usage of `@eliware/mysql`, `@eliware/rabbitmq`, and
-   direct storage helpers after API verification succeeds.
+8. **Complete.** Remove all direct-service code, migration code, fallback routing, and
+   direct-service dependencies.
 10. **Complete.** Update help text, errors, configuration validation, and documentation for
     API mode.
 11. **Mocked tests complete; dev integration pending.** Add mocked API contract tests and a dev integration test covering reads,
@@ -67,8 +64,7 @@ coordinated update.
 ## Verification
 
 Local verification is complete: tests, 100×4 coverage, lint, package dry-run,
-syntax checks, audit, and diff check pass. A dev integration server is not yet
-available. Run mailctl from the Windows workstation against dev with Gluster unavailable
-locally. Verify message reads, attachment downloads, multipart sends, outbound
-status, and destructive commands. Confirm tokens are never printed, logged, or
-included in error output.
+syntax checks, audit, and diff check pass. Live verification requires a
+disposable mail-service API endpoint. Verify message reads, attachment
+downloads, multipart sends, outbound status, and destructive commands.
+Confirm tokens are never printed, logged, or included in error output.

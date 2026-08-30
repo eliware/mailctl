@@ -38,7 +38,7 @@ async function run(command, args = []) {
   await once(server, 'listening');
   const port = server.address().port;
   const child = spawn(process.execPath, [entrypoint, command, ...args], {
-    env: { ...process.env, MAIL_API_URL: `http://127.0.0.1:${port}`, MAIL_API_TOKEN: 'local-test-token', MYSQL_URL: 'not-a-real-database-url', RABBITMQ_URL: 'not-a-real-rabbit-url', MAIL_STORAGE_PATH: 'not-a-real-storage-path' },
+    env: { ...process.env, MAIL_API_URL: `http://127.0.0.1:${port}`, MAIL_API_TOKEN: 'local-test-token' },
     windowsHide: true,
   });
   const stdout = [], stderr = [];
@@ -50,7 +50,7 @@ async function run(command, args = []) {
 }
 
 describe('local API contract harness', () => {
-  test('exercises API-mode commands without direct services', async () => {
+  test('exercises all CLI commands through the mail service API', async () => {
     for (const [command, args] of [['list', ['--json']], ['headers', ['m-1', '--json']], ['read', ['m-1', '--json']], ['search', ['term', '--json']], ['thread', ['m-1', '--json']], ['sent', ['--json']], ['sent-read', ['out-1', '--json']], ['outbound-status', ['out-1', '--json']], ['health', ['--json']], ['domains', ['--json']], ['retry', ['out-1', '--yes', '--json']], ['cancel', ['out-1', '--yes', '--json']], ['send', ['--sender', 'agent@example.test', '--recipient', 'user@example.test', '--text', 'body', '--json']], ['attachments', ['m-1', '--json']], ['delete', ['m-1', '--yes', '--json']], ['delete', ['--query', 'term', '--yes', '--json']]]) {
       const result = await run(command, args);
       expect(result.code).toBe(0);

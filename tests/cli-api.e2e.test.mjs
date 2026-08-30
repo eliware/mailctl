@@ -55,10 +55,4 @@ describe("API CLI contract", () => {
     expect(JSON.parse(result.stdout).healthy).toBe(false);
   });
 
-  test("documents migrate as the only direct-service command", async () => {
-    const source = await (await import("node:fs/promises")).readFile(entrypoint, "utf8");
-    expect(source).toContain('command !== "migrate"');
-    expect(source).toContain('runMigrations({ pool: db, confirm: true })');
-    expect(source).toContain('import("./src/runtime.mjs")');
-  });
 });
