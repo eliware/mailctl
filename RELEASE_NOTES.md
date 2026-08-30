@@ -1,5 +1,18 @@
 # Release notes
 
+## 2.1.1 — 2026-08-30
+
+### Fixed
+
+- Injected the caller’s `MAIL_OWNER_ADDRESS` into ordinary send requests.
+- Corrected caller-project owner-address precedence over installation settings.
+
+### Validation
+
+- Live health, inbox, sent, search, domains, and outbound inspection checks
+  passed. Inbound receipt was unavailable from the self-send smoke test, and
+  live attachment operations were not exercised.
+
 ## 2.1.0 — 2026-08-30
 
 ### Agent UX
