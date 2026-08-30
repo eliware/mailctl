@@ -1,6 +1,6 @@
 # Release notes
 
-## Unreleased
+## 3.0.0 — 2026-08-30
 
 ### Agent UX
 
