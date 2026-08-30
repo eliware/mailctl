@@ -23,7 +23,6 @@
     ],
     "scripts": {
         "test": "eliware-test",
-        "test:gaps": "eliware-test",
         "lint": "eliware-test --lint",
         "audit": "npm audit --omit=dev --audit-level=moderate",
         "pack": "npm pack --dry-run",

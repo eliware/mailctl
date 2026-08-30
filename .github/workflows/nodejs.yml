@@ -29,8 +29,6 @@ jobs:
         run: npm ci
       - name: Run tests
         run: npm test
-      - name: Check coverage gaps
-        run: npm run test:gaps
       - name: Run lint
         run: npm run lint
       - name: Audit production dependencies

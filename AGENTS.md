@@ -31,7 +31,6 @@ Run the standard checks before committing:
 
 ```sh
 npm test
-npm run test:gaps
 npm run lint
 npm run pack
 node --check mailctl.mjs
