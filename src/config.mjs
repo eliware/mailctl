@@ -30,7 +30,7 @@ export function loadOwnerConfig(cwd = process.cwd()) {
   const path = join(cwd, '.env');
   if (!existsSync(path)) return;
   const values = parseEnv(readFileSync(path, 'utf8'));
-  if (process.env.MAIL_OWNER_ADDRESS === undefined && values.MAIL_OWNER_ADDRESS !== undefined)
+  if (values.MAIL_OWNER_ADDRESS !== undefined)
     process.env.MAIL_OWNER_ADDRESS = values.MAIL_OWNER_ADDRESS;
 }
 

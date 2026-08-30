@@ -50,7 +50,7 @@ describe('configuration loading', () => {
       else process.env.MAIL_API_URL = previousUrl;
     }
   });
-  test('does not override an explicit owner address', async () => {
+  test('caller owner address overrides installation or process owner address', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'mailctl-owner-'));
     const path = join(directory, '.env');
     const previousOwner = process.env.MAIL_OWNER_ADDRESS;
@@ -58,7 +58,7 @@ describe('configuration loading', () => {
     await writeFile(path, 'MAIL_OWNER_ADDRESS=file@example.test\n');
     try {
       loadOwnerConfig(directory);
-      expect(process.env.MAIL_OWNER_ADDRESS).toBe('process@example.test');
+      expect(process.env.MAIL_OWNER_ADDRESS).toBe('file@example.test');
     } finally {
       if (previousOwner === undefined) delete process.env.MAIL_OWNER_ADDRESS;
       else process.env.MAIL_OWNER_ADDRESS = previousOwner;
