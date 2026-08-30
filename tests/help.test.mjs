@@ -7,7 +7,7 @@ describe("help", () => {
     expect(text).toContain("Commands:");
     expect(text).toContain("--json");
     expect(text).toContain("--dry-run");
-    expect(text).toContain("Destructive commands require --yes");
+    expect(text).toContain("Destructive requests require explicit JSON confirmation");
   });
 
   test("renders every command-specific help entry", () => {

@@ -5,7 +5,7 @@ describe("API client", () => {
   const original = { ...process.env };
 
   beforeEach(() => {
-    process.env.MAIL_API_URL = "https://mail.example.test/api/";
+    process.env.MAIL_API_URL = "https://mail.example.test";
     process.env.MAIL_API_TOKEN = "test-token";
     delete process.env.MAIL_API_TIMEOUT_MS;
   });
@@ -18,7 +18,7 @@ describe("API client", () => {
     const fetchFn = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      text: async () => '{"ok":true}',
+      text: async () => '{"data":{"ok":true},"request_id":"req-1"}',
     });
     await expect(apiRequest("messages", {
       method: "POST",
@@ -26,7 +26,7 @@ describe("API client", () => {
       headers: { "X-Test": "yes" },
     }, { fetchFn })).resolves.toEqual({ ok: true });
     expect(fetchFn).toHaveBeenCalledWith(
-      new URL("https://mail.example.test/api/messages"),
+      new URL("https://mail.example.test/messages"),
       expect.objectContaining({
         method: "POST",
         headers: {
@@ -41,7 +41,7 @@ describe("API client", () => {
     );
     const form = new FormData();
     form.append("field", "value");
-    const formFetch = jest.fn().mockResolvedValue({ ok: true, status: 200, text: async () => "{}" });
+    const formFetch = jest.fn().mockResolvedValue({ ok: true, status: 200, text: async () => '{"data":{},"request_id":"req-2"}' });
     await apiRequest("form", { method: "POST", body: form }, { fetchFn: formFetch });
     expect(formFetch.mock.calls[0][1].body).toBe(form);
     expect(formFetch.mock.calls[0][1].headers["Content-Type"]).toBeUndefined();
@@ -57,7 +57,7 @@ describe("API client", () => {
     const textFetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      text: async () => "not-json",
+      text: async () => '{"data":"not-json","request_id":"req-3"}',
     });
     await expect(apiRequest("text", {
       method: "POST",
@@ -74,6 +74,8 @@ describe("API client", () => {
     await expect(apiRequest("health", {}, { fetchFn: jest.fn() })).rejects.toThrow("valid URL");
     process.env.MAIL_API_URL = "file:///tmp/mail";
     await expect(apiRequest("health", {}, { fetchFn: jest.fn() })).rejects.toThrow("HTTP or HTTPS");
+    process.env.MAIL_API_URL = "https://mail.example.test/api";
+    await expect(apiRequest("health", {}, { fetchFn: jest.fn() })).rejects.toThrow("service root");
   });
 
   test("detects complete and incomplete API configuration", () => {
@@ -89,9 +91,9 @@ describe("API client", () => {
     const apiError = jest.fn().mockResolvedValue({
       ok: false,
       status: 401,
-      text: async () => '{"error":"unauthorized","code":"AUTH_FAILED"}',
+      text: async () => '{"error":{"code":"AUTH_FAILED","message":"unauthorized"},"request_id":"req-auth"}',
     });
-    await expect(apiRequest("health", {}, { fetchFn: apiError })).rejects.toMatchObject({ message: "unauthorized", code: "AUTH_FAILED", status: 401 });
+    await expect(apiRequest("health", {}, { fetchFn: apiError })).rejects.toMatchObject({ message: "unauthorized", code: "AUTH_FAILED", status: 401, requestId: "req-auth" });
     const transportError = jest.fn().mockRejectedValue(new Error("connection reset"));
     await expect(apiRequest("health", {}, { fetchFn: transportError })).rejects.toMatchObject({ message: "mail API request failed: connection reset", code: "MAIL_API_REQUEST_FAILED" });
     const leakingTransport = jest.fn().mockRejectedValue(new Error("body test-token secret"));
@@ -103,6 +105,8 @@ describe("API client", () => {
     });
     await expect(apiRequest("health", {}, { fetchFn: genericApiError })).rejects.toMatchObject({ message: "mail API returned HTTP 503", code: "MAIL_API_ERROR", status: 503 });
     await expect(apiRequest("health", {}, { fetchFn: null })).rejects.toThrow("fetch is not available");
+    const malformed = jest.fn().mockResolvedValue({ ok: true, status: 200, text: async () => "not-json" });
+    await expect(apiRequest("health", {}, { fetchFn: malformed })).rejects.toThrow("invalid JSON response envelope");
   });
 
   test("validates the timeout setting", async () => {

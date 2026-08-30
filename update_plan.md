@@ -38,6 +38,33 @@ non-idempotent sends unless an idempotency key is provided. Additive response
 fields are compatible; changes to field meaning or identifier types require a
 coordinated update.
 
+## Agent UX API dependency
+
+The next mailctl UX migration depends on the Mail API providing these
+authoritative behaviors before the corresponding client commands are enabled:
+
+- Stable JSON envelopes and structured errors for every command/control
+  endpoint; transport failures remain mailctl errors.
+- Scoped inbox and sent listing responses with explicit direction, pagination,
+  counts, and applied mailbox scope.
+- Typed message reads covering headers, body, attachments, thread metadata,
+  direction, and applicable outbound delivery data.
+- One JSON `POST /api/send` contract for ordinary sends and replies. Replies
+  include the source message ID and reply mode; the API derives reply fields by
+  default and validates explicit recipient, subject, and threading overrides.
+  Sender identity cannot be overridden.
+- Consistent JSON responses for attachments, retry, cancel, status, delete,
+  batch operations, domains, health, and service status. Attachment bytes are
+  the intentional binary-response exception.
+- Server-side mailbox-scope authorization and idempotency handling for
+  non-idempotent operations.
+
+Mailctl will remain responsible only for configuration discovery, bearer
+authentication, JSON input transport, command routing, local attachment file
+writes, response passthrough, and process exit codes. This is a contract
+dependency for the UX migration, not a request to change the Mail API in this
+repository.
+
 ## Implementation steps
 
 1. **Complete.** Add `MAIL_API_URL` and `MAIL_API_TOKEN` configuration and document them in

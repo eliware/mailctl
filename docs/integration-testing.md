@@ -7,8 +7,9 @@ mailctl communicates only with the authenticated mail service API.
 ## Safe setup
 
 1. Obtain a disposable mail-service test endpoint.
-2. Set `MAIL_API_URL` and `MAIL_API_TOKEN` in the shell or in
-   `~/.config/mailctl/.env`.
+2. Set `MAIL_API_URL` and `MAIL_API_TOKEN` in mailctl’s project/install
+   configuration and `MAIL_OWNER_ADDRESS` in the test caller’s `.env` or
+   shell.
 3. Confirm the token is scoped only to the test service.
 4. Run the CLI contract and smoke commands against that endpoint.
 
@@ -20,9 +21,11 @@ cleanup.
 ## What to verify
 
 - Authenticated API connectivity and read queries.
+- Owner-scoped inbox and sent queries, including missing-scope failure.
 - Outbound send, retry, cancel, and status behavior.
 - Attachment upload, download, and cleanup through the API.
 - `--dry-run` performs no writes.
+- JSON command responses and errors are stable and machine-parseable.
 - Failed API operations return nonzero status without leaking credentials or
   credential-bearing URLs.
 

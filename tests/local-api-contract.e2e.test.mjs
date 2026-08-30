@@ -11,34 +11,33 @@ const entrypoint = fileURLToPath(new URL('../mailctl.mjs', import.meta.url));
 
 async function run(command, args = []) {
   const seen = [];
+  const envelope = (data) => JSON.stringify({ data, request_id: 'local-request' });
   const server = createServer((request, response) => {
     seen.push({ method: request.method, url: request.url, auth: request.headers.authorization });
     if (request.headers.authorization !== 'Bearer local-test-token') {
       response.statusCode = 401;
-      return response.end(JSON.stringify({ error: 'unauthorized', code: 'AUTH_FAILED' }));
+      return response.end(JSON.stringify({ error: { code: 'AUTH_FAILED', message: 'unauthorized' }, request_id: 'local-request' }));
     }
     response.setHeader('content-type', 'application/json');
-    if (request.url === '/api/messages') return response.end(JSON.stringify([{ message_id: 'm-1' }]));
-    if (request.url === '/api/messages/m-1') return response.end(JSON.stringify({ message_id: 'm-1', attachments: [{ attachment_id: 'a-1', original_filename: 'note.txt' }] }));
-    if (request.url === '/api/search?q=term') return response.end(JSON.stringify({ results: [{ id: 'm-1', kind: 'inbound' }] }));
-    if (request.url === '/api/status') return response.end(JSON.stringify({ state: { status: 'running' }, readiness: { ready: true } }));
-    if (request.url === '/api/domains') return response.end(JSON.stringify([{ name: 'example.test' }]));
+    if (request.url === '/api/inbox?address=agent%40example.test') return response.end(envelope({ messages: [{ message_id: 'm-1' }] }));
+    if (request.url === '/api/messages') return response.end(envelope({ messages: [{ message_id: 'm-1' }] }));
+    if (request.url === '/api/messages/m-1') return response.end(envelope({ message_id: 'm-1', attachments: [{ attachment_id: 'a-1', original_filename: 'note.txt' }] }));
+    if (request.url === '/api/search?q=term') return response.end(envelope({ results: [{ id: 'm-1', kind: 'inbound' }] }));
+    if (request.url === '/api/status') return response.end(envelope({ state: { status: 'running' }, readiness: { ready: true } }));
+    if (request.url === '/api/domains') return response.end(envelope({ domains: [{ name: 'example.test' }] }));
     if (request.url === '/api/attachments/a-1') {
       response.setHeader('content-type', 'text/plain');
       return response.end('attachment bytes');
     }
-    if (request.method === 'DELETE') {
-      response.statusCode = 204;
-      return response.end();
-    }
-    if (request.method === 'POST') return response.end(JSON.stringify({ outbound_id: 'out-1', status: 'queued', action: 'retry' }));
-    response.end(JSON.stringify({ results: [], deliveries: [], attempts: [] }));
+    if (request.method === 'DELETE') return response.end(envelope({ deleted: ['m-1'] }));
+    if (request.method === 'POST') return response.end(envelope({ outbound_id: 'out-1', status: 'queued', action: 'retry' }));
+    response.end(envelope({ results: [], deliveries: [], attempts: [] }));
   });
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const port = server.address().port;
   const child = spawn(process.execPath, [entrypoint, command, ...args], {
-    env: { ...process.env, MAIL_API_URL: `http://127.0.0.1:${port}`, MAIL_API_TOKEN: 'local-test-token' },
+    env: { ...process.env, MAIL_API_URL: `http://127.0.0.1:${port}`, MAIL_API_TOKEN: 'local-test-token', MAIL_OWNER_ADDRESS: 'agent@example.test' },
     windowsHide: true,
   });
   const stdout = [], stderr = [];
@@ -51,7 +50,7 @@ async function run(command, args = []) {
 
 describe('local API contract harness', () => {
   test('exercises all CLI commands through the mail service API', async () => {
-    for (const [command, args] of [['list', ['--json']], ['headers', ['m-1', '--json']], ['read', ['m-1', '--json']], ['search', ['term', '--json']], ['thread', ['m-1', '--json']], ['sent', ['--json']], ['sent-read', ['out-1', '--json']], ['outbound-status', ['out-1', '--json']], ['health', ['--json']], ['domains', ['--json']], ['retry', ['out-1', '--yes', '--json']], ['cancel', ['out-1', '--yes', '--json']], ['send', ['--sender', 'agent@example.test', '--recipient', 'user@example.test', '--text', 'body', '--json']], ['attachments', ['m-1', '--json']], ['delete', ['m-1', '--yes', '--json']], ['delete', ['--query', 'term', '--yes', '--json']]]) {
+    for (const [command, args] of [['list', []], ['inbox', []], ['headers', ['m-1']], ['read', ['m-1']], ['search', ['term']], ['thread', ['m-1']], ['sent', []], ['sent-read', ['out-1']], ['outbound-status', ['out-1']], ['health', []], ['domains', []], ['retry', ['{"ids":["out-1"]}']], ['cancel', ['{"ids":["out-1"]}']], ['send', ['{"to":["user@example.test"],"subject":"Hi","body":"body"}']], ['attachments', ['m-1']], ['delete', ['{"ids":["m-1"],"confirm":true}']], ['delete', ['{"query":"term","confirm":true}']]]) {
       const result = await run(command, args);
       expect(result.code).toBe(0);
       expect(result.stderr).toBe('');
@@ -61,7 +60,7 @@ describe('local API contract harness', () => {
     try {
       const attachment = join(directory, 'upload.txt');
       await writeFile(attachment, 'upload bytes');
-      const send = await run('send', ['--sender', 'agent@example.test', '--recipient', 'user@example.test', '--attachment', attachment, '--json']);
+      const send = await run('send', [JSON.stringify({ to: ['user@example.test'], attachments: [attachment] })]);
       expect(send.code).toBe(0);
       const result = await run('save-attachments', ['m-1', directory, '--json']);
       expect(result.code).toBe(0);

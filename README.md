@@ -13,7 +13,9 @@ npm install --global @eliware/mailctl
 
 ## Configuration
 
-Create `~/.config/mailctl/.env` and set `MAIL_API_URL` and `MAIL_API_TOKEN`.
+Configure mailctl’s project or installation `.env` with `MAIL_API_URL` and
+`MAIL_API_TOKEN`. Configure the invoking project’s `.env` with
+`MAIL_OWNER_ADDRESS`.
 Keep the token in local configuration or runtime secret injection;
 never commit or print it. Existing environment
 variables take precedence over values in that file. The configuration file is
@@ -25,16 +27,17 @@ Configuration contract:
 | ------------------- | --------------------------------- | ------- | ------------------------------------------------------------------------------------ | --------------------------- |
 | `MAIL_API_URL`      | Required                          | None    | HTTPS base URL for the mail REST API                                                 | No                         |
 | `MAIL_API_TOKEN`    | Required                          | None    | Bearer token for the operator API                                                   | Yes                        |
+| `MAIL_OWNER_ADDRESS` | Required for mailbox commands   | None    | Caller mailbox scope assertion                                                      | No                         |
 
-The CLI validates API configuration before each request.
-Values may be supplied by the process environment or the per-user dotenv file;
-process environment values take precedence. Never print these URLs or commit
-them.
+The CLI loads API settings from its installation/project configuration and the
+owner address from the caller’s current-working-directory configuration.
+Process environment values take precedence. Missing owner scope fails closed.
+Never print credentials or commit private configuration.
 
 The CLI is designed for one-shot operator and AI-agent use. It never starts a
 consumer or prompts for input.
-Add `--json` to every command for machine-readable output. Message bodies and
-Attachment bytes are transferred through the mail service API.
+Every command emits JSON. `--json` is accepted as a harmless no-op. Message
+bodies and attachment bytes are transferred through the mail service API.
 
 ## Help and agent quick start
 
@@ -43,41 +46,43 @@ focused usage, flags, safety notes, and an agent-oriented example:
 
 ```bash
 mailctl
-mailctl list --help
+mailctl inbox --help
 mailctl send --help
-mailctl health --json
+mailctl health
 ```
 
-For a typical agent workflow, run `health --json`, discover IDs with
-`list --json` or `sent --json`, use `read`/`sent-read` for complete records,
-and use `send --json --idempotency KEY ...` followed by `sent --json` to verify
-delivery state. Destructive operations require `--yes`; use `--dry-run` to
+For a typical agent workflow, run `mailctl inbox`, use `mailctl read ID`, and
+send JSON requests through stdin, inline input, or `--input FILE`. Destructive
+requests require explicit JSON confirmation; use the JSON dry-run field to
 preview them safely.
 
 ## Commands
 
 ```text
 mailctl list
+mailctl inbox
 mailctl headers MESSAGE_ID...
 mailctl read MESSAGE_ID...
 mailctl sent
 mailctl sent-read OUTBOUND_ID...
 mailctl search QUERY
 mailctl thread MESSAGE_ID
-mailctl retry OUTBOUND_ID... --yes
-mailctl cancel OUTBOUND_ID... --yes
+mailctl retry
+mailctl cancel
 mailctl health
 mailctl attachments MESSAGE_ID
 mailctl save-attachments MESSAGE_ID DIRECTORY
 mailctl send
-mailctl delete MESSAGE_ID_OR_OUTBOUND_ID... --yes
+mailctl reply MESSAGE_ID
+mailctl reply-all MESSAGE_ID
+mailctl delete
 mailctl domains
 ```
 
-Text and HTML bodies can be supplied inline or from a file with `@path`.
-Outbound attachments are uploaded through the mail service API. Destructive
-commands require `--yes`. `--dry-run` previews send and delete operations
-without changing server state.
+Send and reply commands accept one JSON object from inline input, stdin, or
+`--input FILE`. Outbound attachments are uploaded through the mail service
+API. Destructive commands require explicit JSON confirmation. JSON `dryRun`
+previews supported operations without changing server state.
 
 `sent` lists outbound messages with aggregate and per-recipient delivery
 status. Use `--status queued`, `--status retryable`, `--status failed`, or
@@ -91,7 +96,7 @@ it never removes message records or relational data. Deleted messages are
 excluded from listing, reading, searching, threading, attachment export,
 retry, and cancellation commands.
 
-Use `mailctl outbound-status OUTBOUND_ID --json` to inspect each recipient's
+Use `mailctl outbound-status OUTBOUND_ID` to inspect each recipient's
 delivery state, latest recorded SMTP attempt, elapsed attempt age, and whether
 the delivery is stale. This read-only diagnostic uses the
 `MAIL_OUTBOUND_STALE_DELIVERY_MS` threshold, five minutes by default.
@@ -100,14 +105,15 @@ the delivery is stale. This read-only diagnostic uses the
 service relevance and rank content matches ahead of
 sender, subject, recipient, and header matches. `thread` follows
 stored message-reference headers. `retry` republishes retryable deliveries;
-`cancel` prevents queued deliveries from being sent. Both require `--yes` or
-support `--dry-run`. `health` returns component status and exits with code 0
+`cancel` prevents queued deliveries from being sent. Both use JSON confirmation
+or dry-run requests. `health` returns component status and exits with code 0
 when the API reports `readiness.ready: true`; degraded, unready, or API
-failures exit with code 1. With `--json`, failures are emitted as one JSON object on
-stderr with a stable `error` and `code` shape.
+failures exit with code 1. Failures are emitted as one JSON object on stderr
+with a stable `error` and `code` shape.
 
-The per-user `~/.config/mailctl/.env` file supplies API
-configuration and is intentionally outside the package. API mode requires
+The mailctl installation/project `.env` supplies API configuration and is
+intentionally outside source control. The invoking project `.env` supplies
+`MAIL_OWNER_ADDRESS`. API mode requires
 HTTPS in deployed environments; do not place bearer tokens in URLs or logs.
 
 ## Development

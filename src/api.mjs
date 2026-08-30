@@ -20,6 +20,8 @@ function apiConfig() {
   }
   if (!/^https?:$/.test(url.protocol))
     throw new Error("MAIL_API_URL must use HTTP or HTTPS");
+  if (url.pathname !== '/' || url.search || url.hash)
+    throw new Error("MAIL_API_URL must be a service root without a path, query, or fragment");
   return { baseUrl: url, token };
 }
 
@@ -37,12 +39,18 @@ function redact(value, token) {
 function throwApiError(response, token, text) {
   let payload = null;
   try { payload = text ? JSON.parse(text) : null; } catch {}
-  const message = payload && typeof payload === "object" && payload.error
-    ? redact(payload.error, token)
+  const apiError = payload && typeof payload === "object" && payload.error && typeof payload.error === 'object'
+    ? payload.error
+    : null;
+  const message = apiError?.message
+    ? redact(apiError.message, token)
+    : typeof payload?.error === 'string'
+      ? redact(payload.error, token)
     : `mail API returned HTTP ${response.status}`;
   const error = new Error(message);
-  error.code = payload && typeof payload === "object" && payload.code ? payload.code : "MAIL_API_ERROR";
+  error.code = apiError?.code ?? "MAIL_API_ERROR";
   error.status = response.status;
+  error.requestId = payload?.request_id;
   throw error;
 }
 
@@ -83,5 +91,6 @@ export async function apiRequest(path, { method = "GET", body, headers = {}, raw
   if (!response.ok) {
     return throwApiError(response, token, text);
   }
-  return payload;
+  if (payload && typeof payload === 'object' && Object.hasOwn(payload, 'data')) return payload.data;
+  throw new Error('mail API returned an invalid JSON response envelope');
 }

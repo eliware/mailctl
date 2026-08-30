@@ -1,5 +1,20 @@
 # Release notes
 
+## Unreleased
+
+### Agent UX
+
+- Added JSON-native `inbox`, `reply`, `reply-all`, and `forward` workflows.
+- Added inline, stdin, and `--input FILE` JSON request handling for mutations.
+- Standardized command output and errors as JSON; `--json` is an accepted
+  no-op.
+- Added caller-project `MAIL_OWNER_ADDRESS` loading with fail-closed mailbox
+  filtering.
+- Preserved existing attachment, retry, cancel, delete, search, status,
+  health, domain, thread, and outbound inspection capabilities.
+- Added API passthrough coverage for owner-scoped reads and unified send,
+  reply, and forward requests.
+
 ## 2.0.0 — 2026-08-30
 
 ### Breaking

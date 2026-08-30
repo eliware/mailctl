@@ -29,7 +29,7 @@ describe("API CLI contract", () => {
       expect(request.url).toBe("/api/messages?limit=2");
       expect(request.headers.authorization).toBe("Bearer test-token");
       response.setHeader("content-type", "application/json");
-      response.end(JSON.stringify([{ message_id: "m-1" }]));
+      response.end(JSON.stringify({ data: [{ message_id: "m-1" }], request_id: "req-1" }));
     }, ["list", "--limit", "2", "--json"]);
     expect(result.code).toBe(0);
     expect(JSON.parse(result.stdout)).toEqual([{ message_id: "m-1" }]);
@@ -40,16 +40,16 @@ describe("API CLI contract", () => {
     const result = await runCli((_request, response) => {
       response.statusCode = 401;
       response.setHeader("content-type", "application/json");
-      response.end(JSON.stringify({ error: "unauthorized", code: "AUTH_FAILED" }));
+      response.end(JSON.stringify({ error: { code: "AUTH_FAILED", message: "unauthorized" }, request_id: "req-auth" }));
     }, ["domains", "--json"]);
     expect(result.code).toBe(1);
-    expect(JSON.parse(result.stderr)).toEqual({ error: "unauthorized", code: "AUTH_FAILED" });
+    expect(JSON.parse(result.stderr)).toEqual({ error: { code: "AUTH_FAILED", message: "unauthorized" }, request_id: "req-auth" });
   });
 
   test("returns exit code 1 for unhealthy API status", async () => {
     const result = await runCli((_request, response) => {
       response.setHeader("content-type", "application/json");
-      response.end(JSON.stringify({ state: { status: "degraded" }, readiness: { ready: false } }));
+      response.end(JSON.stringify({ data: { state: { status: "degraded" }, readiness: { ready: false } }, request_id: "req-health" }));
     }, ["health", "--json"]);
     expect(result.code).toBe(1);
     expect(JSON.parse(result.stdout).healthy).toBe(false);
