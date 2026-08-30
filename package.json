@@ -26,7 +26,8 @@
         "lint": "eliware-test --lint",
         "audit": "npm audit --omit=dev --audit-level=moderate",
         "pack": "npm pack --dry-run",
-        "pack:check": "npm run pack"
+        "pack:check": "npm run pack",
+        "test:live": "node scripts/live-e2e.mjs"
     },
     "engines": {
         "node": ">=26"

@@ -13,6 +13,12 @@ mailctl communicates only with the authenticated mail service API.
 3. Confirm the token is scoped only to the test service.
 4. Run the CLI contract and smoke commands against that endpoint.
 
+The repeatable local-checkout harness is `npm run test:live`. It invokes the
+repository entrypoint directly, creates one self-addressed message with a
+small attachment, records PASS/BLOCKED results as JSON, and deletes only its
+own test record during cleanup. It does not substitute for owner-provided
+fixtures needed for inbound replies or queued retry/cancel behavior.
+
 The suite must never be pointed at a live mailbox unless the operator has
 explicitly accepted the risk. Tests should use reserved addresses such as
 `agent@example.test` and remove any created rows and attachment objects during
