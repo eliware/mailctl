@@ -1,5 +1,24 @@
 # Release notes
 
+## 2.0.0 — 2026-08-30
+
+### Breaking
+
+- Mailctl now uses the authenticated Mail REST API for every command.
+- Removed direct MariaDB, RabbitMQ, shared-storage, and migration support.
+- Removed legacy service configuration variables and direct-service dependencies.
+
+### Added
+
+- Added API configuration through `MAIL_API_URL` and `MAIL_API_TOKEN`.
+- Added API contract coverage for reads, sends, attachments, search, deletion,
+  retry/cancel, domains, and health readiness.
+
+### Security
+
+- API credentials are sent only as bearer authorization headers and are
+  redacted from transport errors.
+
 ## 1.2.8 — 2026-08-20
 
 - Added `outbound-status` diagnostics for per-recipient delivery state, latest

@@ -1,13 +1,13 @@
 {
     "name": "@eliware/mailctl",
-    "version": "1.2.8",
+    "version": "2.0.0",
     "description": "Non-interactive mail service REST API CLI for humans and AI agents.",
     "keywords": [
         "mail",
         "email",
         "cli",
-        "mariadb",
-        "rabbitmq",
+        "rest-api",
+        "mail-service",
         "ai-agents"
     ],
     "type": "module",

@@ -13,8 +13,8 @@ npm install --global @eliware/mailctl
 
 ## Configuration
 
-Create `~/.config/mailctl/.env` and set `MAIL_API_URL` and `MAIL_API_TOKEN` for
-API mode. Keep the token in local configuration or runtime secret injection;
+Create `~/.config/mailctl/.env` and set `MAIL_API_URL` and `MAIL_API_TOKEN`.
+Keep the token in local configuration or runtime secret injection;
 never commit or print it. Existing environment
 variables take precedence over values in that file. The configuration file is
 local-only and must never be committed.
@@ -23,10 +23,10 @@ Configuration contract:
 
 | Variable            | Required                          | Default | Format and effect                                                                    | Sensitive                   |
 | ------------------- | --------------------------------- | ------- | ------------------------------------------------------------------------------------ | --------------------------- |
-| `MAIL_API_URL`      | For API mode                      | None    | HTTPS base URL for the mail REST API                                                 | No                         |
-| `MAIL_API_TOKEN`    | For API mode                      | None    | Bearer token for the operator API                                                 | Yes                        |
+| `MAIL_API_URL`      | Required                          | None    | HTTPS base URL for the mail REST API                                                 | No                         |
+| `MAIL_API_TOKEN`    | Required                          | None    | Bearer token for the operator API                                                   | Yes                        |
 
-The CLI validates configuration when a command opens the relevant dependency.
+The CLI validates API configuration before each request.
 Values may be supplied by the process environment or the per-user dotenv file;
 process environment values take precedence. Never print these URLs or commit
 them.
@@ -117,12 +117,6 @@ npm ci
 npm test
 npm run lint
 npm run pack
-```
-
-Live service checks are deliberately separate from the default test command:
-
-```bash
-npm run test:integration
 ```
 
 Live testing requires a disposable mail-service endpoint as described in
