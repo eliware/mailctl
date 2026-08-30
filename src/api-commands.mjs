@@ -124,11 +124,12 @@ export async function runApiCommand(command, ids, options) {
       error.code = 'INVALID_SEND_FIELDS';
       throw error;
     }
-    if (options['dry-run'] || request.dryRun) return output({ dryRun: true, action: 'send', request }, options);
-    const files = Array.isArray(request.attachments)
-      ? request.attachments.filter((attachment) => typeof attachment === 'string')
+    const bodyRequest = { ...request, from: ownerAddress() };
+    if (options['dry-run'] || request.dryRun) return output({ dryRun: true, action: 'send', request: bodyRequest }, options);
+    const files = Array.isArray(bodyRequest.attachments)
+      ? bodyRequest.attachments.filter((attachment) => typeof attachment === 'string')
       : [];
-    const body = { ...request, attachments: files.length ? undefined : request.attachments };
+    const body = { ...bodyRequest, attachments: files.length ? undefined : bodyRequest.attachments };
     if (!files.length) return output(await apiRequest('/api/send', { method: 'POST', body }), options);
     const form = new FormData();
     for (const [key, value] of Object.entries(body)) {

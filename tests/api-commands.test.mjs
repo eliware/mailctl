@@ -53,7 +53,7 @@ describe('API command routing', () => {
     await result;
     expect(apiRequest).toHaveBeenCalledWith('/api/send', {
       method: 'POST',
-      body: { to: ['user@example.test'], body: 'stdin' },
+      body: { to: ['user@example.test'], body: 'stdin', from: 'owner@example.test', attachments: undefined },
     });
   });
 
@@ -230,7 +230,7 @@ describe('API command routing', () => {
 
   test('routes JSON and multipart sends and previews dry-run', async () => {
     await runApiCommand('send', [], { inputJson: { to: ['user@example.test'], cc: ['copy@example.test'], bcc: ['blind@example.test'], body: 'body' }, json: true });
-    expect(apiRequest).toHaveBeenCalledWith('/api/send', expect.objectContaining({ method: 'POST', body: expect.objectContaining({ to: ['user@example.test'], cc: ['copy@example.test'], bcc: ['blind@example.test'] }) }));
+    expect(apiRequest).toHaveBeenCalledWith('/api/send', expect.objectContaining({ method: 'POST', body: expect.objectContaining({ from: 'owner@example.test', to: ['user@example.test'], cc: ['copy@example.test'], bcc: ['blind@example.test'] }) }));
     const directory = await mkdtemp(join(tmpdir(), 'mailctl-api-send-'));
     try {
       const file = join(directory, 'attachment.txt');
@@ -251,7 +251,7 @@ describe('API command routing', () => {
     await runApiCommand('send', [], { inputJson: { to: ['user@example.test'], subject: 'Hi', body: 'Hello' } });
     expect(apiRequest).toHaveBeenCalledWith('/api/send', {
       method: 'POST',
-      body: { to: ['user@example.test'], subject: 'Hi', body: 'Hello' },
+      body: { to: ['user@example.test'], subject: 'Hi', body: 'Hello', from: 'owner@example.test' },
     });
     apiRequest.mockResolvedValueOnce({ outbound_id: 'out-1', status: 'queued' });
     await runApiCommand('retry', [], { inputJson: { ids: ['out-1'] } });
