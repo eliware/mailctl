@@ -1,17 +1,17 @@
 import { mkdtemp, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { userConfigPath, loadUserConfig } from "../src/config.mjs";
 
 describe("configuration", () => {
   test("uses the per-user config directory", () => {
-    expect(userConfigPath("/home/example")).toBe(
-      "/home/example/.config/mailctl/.env",
+    expect(userConfigPath("home-example")).toBe(
+      join("home-example", ".config", "mailctl", ".env"),
     );
   });
 
   test("uses the process home when no home is supplied", () => {
-    expect(userConfigPath()).toContain(".config/mailctl/.env");
+    expect(userConfigPath()).toBe(join(homedir(), ".config", "mailctl", ".env"));
   });
 
   test("loads a supplied dotenv file", async () => {

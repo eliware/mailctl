@@ -31,7 +31,7 @@ jest.unstable_mockModule("../src/args.mjs", () => ({
   values: (value) => (Array.isArray(value) ? value : value ? [value] : []),
 }));
 
-const { readSent, saveOutboundAttachment, send, updateOutbound } =
+const { outboundStatus, readSent, saveOutboundAttachment, send, updateOutbound } =
   await import("../src/outbound.mjs");
 
 function makeConnection({ fail = false } = {}) {
@@ -50,6 +50,32 @@ function makeConnection({ fail = false } = {}) {
 }
 
 describe("outbound uncovered branches", () => {
+  test("reports outbound delivery status and missing messages", async () => {
+    await expect(
+      outboundStatus(["missing"], {}, { query: async () => [[]] }),
+    ).rejects.toThrow("outbound message not found");
+    const db = {
+      query: jest
+        .fn()
+        .mockResolvedValueOnce([[{ outbound_id: "out-1", status: "queued" }]])
+        .mockResolvedValueOnce([
+          [
+            { delivery_id: "del-1", status: "queued" },
+            { delivery_id: "del-2", status: "sending" },
+          ],
+        ])
+        .mockResolvedValueOnce([
+          [{ delivery_id: "del-2", started_at: null }],
+        ])
+        .mockResolvedValueOnce([[{ outbound_id: "out-2", status: "sent" }]])
+        .mockResolvedValueOnce([[]])
+        .mockResolvedValueOnce([[]]),
+    };
+    await expect(
+      outboundStatus(["out-1", "out-2"], { json: true }, db),
+    ).resolves.toBeUndefined();
+  });
+
   test("rejects missing sent messages and uses empty headers", async () => {
     await expect(
       readSent(["missing"], {}, { query: async () => [[]] }),

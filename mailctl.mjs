@@ -5,23 +5,9 @@ import packageJson from "./package.json" with { type: "json" };
 import { log, registerHandlers, registerSignals } from "@eliware/common";
 import { parseArgs, required } from "./src/args.mjs";
 import { help } from "./src/help.mjs";
-import { dbConnection } from "./src/runtime.mjs";
 import { output } from "./src/output.mjs";
-import {
-  listMessages,
-  readMessages,
-  searchMail,
-  thread,
-} from "./src/inbound.mjs";
-import { listSent, readSent, outboundStatus, updateOutbound, send } from "./src/outbound.mjs";
-import {
-  attachmentList,
-  saveAttachments,
-  saveSentAttachments,
-} from "./src/attachments.mjs";
-import { deleteMail } from "./src/delete.mjs";
-import { health } from "./src/health.mjs";
-import { runMigrations } from "./src/migrations.mjs";
+import { apiModeConfigured } from "./src/api.mjs";
+import { runApiCommand } from "./src/api-commands.mjs";
 
 registerHandlers({ log });
 registerSignals({ log, exitCode: 1, shutdownHook: async () => {} });
@@ -33,6 +19,17 @@ async function main() {
   if (!positionals.length || options.help)
     return console.log(help(positionals));
   const [command, ...ids] = positionals;
+  if (apiModeConfigured() && command !== "migrate")
+    return await runApiCommand(command, ids, options);
+  const [{ dbConnection }, { listMessages, readMessages, searchMail, thread }, { listSent, readSent, outboundStatus, updateOutbound, send }, { attachmentList, saveAttachments, saveSentAttachments }, { deleteMail }, { health }, { runMigrations }] = await Promise.all([
+    import("./src/runtime.mjs"),
+    import("./src/inbound.mjs"),
+    import("./src/outbound.mjs"),
+    import("./src/attachments.mjs"),
+    import("./src/delete.mjs"),
+    import("./src/health.mjs"),
+    import("./src/migrations.mjs"),
+  ]);
   const db = await dbConnection();
   try {
     if (command === "list") return await listMessages(options, db);

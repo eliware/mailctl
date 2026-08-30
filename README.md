@@ -3,9 +3,9 @@
 Standalone command-line client for the Eliware Mail service.
 
 The package is intentionally separate from the mail server so it can be
-installed globally. It connects directly to MariaDB and RabbitMQ and reads
-attachment objects from the configured shared storage path; it does not use
-the web API or SMTP.
+installed globally. Normal commands are being migrated to the mail REST API;
+database migrations remain a deliberate direct MariaDB operation during the
+transition.
 
 ## Installation
 
@@ -15,15 +15,19 @@ npm install --global @eliware/mailctl
 
 ## Configuration
 
-Create `~/.config/mailctl/.env` and set the direct MariaDB and RabbitMQ
-connection URLs. `MAIL_STORAGE_PATH` must point to the shared attachment
-volume. Existing environment variables take precedence over values in that
-file. The configuration file is local-only and must never be committed.
+Create `~/.config/mailctl/.env` and set `MAIL_API_URL` and `MAIL_API_TOKEN` for
+API mode. Keep the token in local configuration or runtime secret injection;
+never commit or print it. Direct MariaDB, RabbitMQ, and shared-storage values
+remain available for migration and transition workflows. Existing environment
+variables take precedence over values in that file. The configuration file is
+local-only and must never be committed.
 
 Configuration contract:
 
 | Variable            | Required                          | Default | Format and effect                                                                    | Sensitive                   |
 | ------------------- | --------------------------------- | ------- | ------------------------------------------------------------------------------------ | --------------------------- |
+| `MAIL_API_URL`      | For API mode                      | None    | HTTPS base URL for the mail REST API                                                 | No                         |
+| `MAIL_API_TOKEN`    | For API mode                      | None    | Bearer token for the operator API                                                 | Yes                        |
 | `MYSQL_URL`         | For database commands             | None    | `mysql://USER:PASSWORD@HOST/DATABASE`; selects the MariaDB endpoint and schema       | Yes                         |
 | `RABBITMQ_URL`      | For `send`, `retry`, and `cancel` | None    | `amqp://USER:PASSWORD@HOST/VHOST`; selects the RabbitMQ vhost used for outbound work | Yes                         |
 | `MAIL_STORAGE_PATH` | For attachment commands           | None    | Absolute readable/writable directory containing hashed attachment objects            | No, but deployment-specific |
@@ -111,12 +115,14 @@ MariaDB FULLTEXT relevance score and rank content matches ahead of fallback
 sender, subject, recipient, and header matches. `thread` follows
 stored message-reference headers. `retry` republishes retryable deliveries;
 `cancel` prevents queued deliveries from being sent. Both require `--yes` or
-support `--dry-run`. `health` returns component status and exits with code 2
-when degraded. With `--json`, failures are emitted as one JSON object on
+support `--dry-run`. `health` returns component status and exits with code 0
+when the API reports `readiness.ready: true`; degraded, unready, or API
+failures exit with code 1. With `--json`, failures are emitted as one JSON object on
 stderr with a stable `error` and `code` shape.
 
-The per-user `~/.config/mailctl/.env` file supplies direct MariaDB, RabbitMQ,
-and storage configuration and is intentionally outside the package.
+The per-user `~/.config/mailctl/.env` file supplies API or direct-service
+configuration and is intentionally outside the package. API mode requires
+HTTPS in deployed environments; do not place bearer tokens in URLs or logs.
 
 ## Development
 

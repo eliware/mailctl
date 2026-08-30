@@ -1,5 +1,7 @@
 import { jest, describe, expect, test } from "@jest/globals";
-import { writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const createDb = jest.fn().mockResolvedValue("db");
 const getRabbitUrl = jest.fn();
@@ -25,11 +27,15 @@ describe("runtime connection branches", () => {
 
   test("returns inline values when a path is not a file", async () => {
     await expect(bodyValue("not-a-file")).resolves.toBe("not-a-file");
-    await expect(bodyValue("/tmp")).resolves.toBe("/tmp");
-    await writeFile("/tmp/mailctl-runtime-coverage.txt", "file body");
-    await expect(bodyValue("/tmp/mailctl-runtime-coverage.txt")).resolves.toBe(
-      "file body",
-    );
+    const directory = await mkdtemp(join(tmpdir(), "mailctl-runtime-"));
+    try {
+      await expect(bodyValue(directory)).resolves.toBe(directory);
+      const path = join(directory, "body.txt");
+      await writeFile(path, "file body");
+      await expect(bodyValue(path)).resolves.toBe("file body");
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
     expect(storagePath(".")).toBe(storagePath(""));
   });
 });

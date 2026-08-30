@@ -1,5 +1,12 @@
 # Release notes
 
+## 1.2.8 — 2026-08-20
+
+- Added `outbound-status` diagnostics for per-recipient delivery state, latest
+  SMTP attempts, elapsed attempt age, and stale delivery detection.
+- Added the `MAIL_OUTBOUND_STALE_DELIVERY_MS` configuration threshold for
+  outbound delivery diagnostics.
+
 ## 1.2.7 — 2026-08-19
 
 - Added durable event-outbox schema migration support for reliable mail event publication.

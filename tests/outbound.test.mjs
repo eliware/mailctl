@@ -1,5 +1,7 @@
 import { describe, expect, jest, test } from '@jest/globals';
-import { writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { listSent, readSent, outboundStatus, send, updateOutbound } from '../src/outbound.mjs';
 
 describe('outbound commands', () => {
@@ -36,10 +38,15 @@ describe('outbound commands', () => {
       .rejects.toThrow('sender domain is not managed');
   });
   test('previews a managed send with an attachment', async () => {
-    const attachment = '/tmp/mailctl-outbound-test.txt';
-    await writeFile(attachment, 'attachment body');
-    const db = { query: jest.fn().mockResolvedValue([[{ domain_id: 'domain-1' }]]) };
-    await expect(send({ sender: 'agent@example.test', recipient: ['user@example.test'], cc: 'copy@example.test', bcc: ['blind@example.test'], subject: 'Subject', text: 'Body', html: '<p>Body</p>', attachment, 'dry-run': true, json: true }, db)).resolves.toBeUndefined();
+    const directory = await mkdtemp(join(tmpdir(), 'mailctl-outbound-'));
+    try {
+      const attachment = join(directory, 'attachment.txt');
+      await writeFile(attachment, 'attachment body');
+      const db = { query: jest.fn().mockResolvedValue([[{ domain_id: 'domain-1' }]]) };
+      await expect(send({ sender: 'agent@example.test', recipient: ['user@example.test'], cc: 'copy@example.test', bcc: ['blind@example.test'], subject: 'Subject', text: 'Body', html: '<p>Body</p>', attachment, 'dry-run': true, json: true }, db)).resolves.toBeUndefined();
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
   test('cancels outbound work transactionally', async () => {
     const calls = [];

@@ -19,12 +19,17 @@ describe("attachment commands", () => {
   });
   test("handles empty inbound and outbound attachment exports", async () => {
     const db = { query: async () => [[]] };
-    await expect(
-      saveAttachments("message-1", "/tmp/mailctl-inbound-empty", {}, db),
-    ).resolves.toBeUndefined();
-    await expect(
-      saveSentAttachments("outbound-1", "/tmp/mailctl-outbound-empty", {}, db),
-    ).resolves.toBeUndefined();
+    const directory = await mkdtemp(join(tmpdir(), "mailctl-empty-"));
+    try {
+      await expect(
+        saveAttachments("message-1", join(directory, "inbound"), {}, db),
+      ).resolves.toBeUndefined();
+      await expect(
+        saveSentAttachments("outbound-1", join(directory, "outbound"), {}, db),
+      ).resolves.toBeUndefined();
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   test("extracts compressed and identity attachments and uses a fallback filename", async () => {
@@ -51,6 +56,12 @@ describe("attachment commands", () => {
         storage_encoding: "identity",
         original_filename: null,
       },
+      {
+        attachment_id: "escaped-id",
+        object_path: plainPath,
+        storage_encoding: "identity",
+        original_filename: "../exports/escape.txt",
+      },
     ];
     const db = { query: async () => [rows] };
     const directory = await mkdtemp(join(tmpdir(), "mailctl-attachments-"));
@@ -60,6 +71,9 @@ describe("attachment commands", () => {
         "compressed body",
       );
       expect(await readFile(join(directory, "plain-id"), "utf8")).toBe(
+        "plain body",
+      );
+      expect(await readFile(join(directory, "escape.txt"), "utf8")).toBe(
         "plain body",
       );
     } finally {
