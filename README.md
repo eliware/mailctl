@@ -1,5 +1,7 @@
 # mailctl
 
+Documentation: [docs](docs/README.md) · [specifications](specs/README.md) · [examples](examples/README.md)
+
 Standalone command-line client for the Eliware Mail service.
 
 The package is intentionally separate from the mail server so it can be
