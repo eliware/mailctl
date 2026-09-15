@@ -33,7 +33,7 @@
         "node": ">=26"
     },
     "devDependencies": {
-        "@eliware/test": "^2.1.4"
+        "@eliware/test": "^5.0.0"
     },
     "jest": {
         "testEnvironment": "node",
