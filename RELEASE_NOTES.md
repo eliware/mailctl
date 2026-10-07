@@ -1,5 +1,19 @@
 # Release notes
 
+## 3.0.0 — 2026-10-07
+
+### Attachment downloads
+
+- Streamed API attachment downloads to disk.
+- Sanitized file names and avoided overwriting existing files.
+- Removed partial files when a download stream fails.
+
+### Validation and documentation
+
+- Added a local API end-to-end test harness.
+- Added user guides, troubleshooting steps, examples, and specifications.
+- Updated test tooling and refreshed the package lock file.
+
 ## 2.1.1 — 2026-08-30
 
 ### Fixed
