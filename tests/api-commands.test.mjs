@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -190,8 +190,8 @@ describe('API command routing', () => {
     await runApiCommand('attachments', ['m-1'], {});
     const directory = await mkdtemp(join(tmpdir(), 'mailctl-api-attachments-'));
     try {
-      apiRequest.mockResolvedValueOnce({ attachments: [{ attachment_id: 'a-1', original_filename: '../file.txt' }] });
-      apiRequest.mockResolvedValueOnce({ arrayBuffer: async () => Buffer.from('bytes') });
+      apiRequest.mockResolvedValueOnce({ attachments: [{ attachment_id: 'a-1', original_filename: '..\\file.txt' }] });
+      apiRequest.mockResolvedValueOnce({ body: new Response('bytes').body });
       await writeFile(join(directory, 'file.txt'), 'existing');
       await runApiCommand('save-attachments', ['m-1', directory], {});
       expect(await (await import('node:fs/promises')).readFile(join(directory, 'file.txt'), 'utf8')).toBe('existing');
@@ -203,8 +203,58 @@ describe('API command routing', () => {
       apiRequest.mockResolvedValueOnce({});
       await runApiCommand('save-sent-attachments', ['o-2', directory], {});
       apiRequest.mockResolvedValueOnce({ attachments: [{ attachment_id: 'a-2', original_filename: null }] });
-      apiRequest.mockResolvedValueOnce({ arrayBuffer: async () => Buffer.from('bytes') });
+      apiRequest.mockResolvedValueOnce(new Response('bytes'));
       await runApiCommand('save-attachments', ['m-2'], { directory });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  test('uses safe fallback names and saves empty attachment bodies', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'mailctl-empty-attachments-'));
+    try {
+      apiRequest.mockResolvedValueOnce({ attachments: [
+        { attachment_id: 'fallback-id', original_filename: '...' },
+        { attachment_id: 'reserved-id', original_filename: 'CON.txt' },
+        { attachment_id: 'sanitized-id', original_filename: 'bad?.txt' },
+      ] });
+      apiRequest.mockResolvedValueOnce({ body: null }).mockResolvedValueOnce({ body: null }).mockResolvedValueOnce({ body: null });
+      await runApiCommand('save-attachments', ['m-1', directory], {});
+      expect((await readdir(directory)).sort()).toEqual(['_CON.txt', 'bad_.txt', 'fallback-id']);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  test('reports a download path error before writing a file', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'mailctl-long-name-'));
+    try {
+      apiRequest.mockResolvedValueOnce({ attachments: [{ attachment_id: 'a-1', original_filename: 'x'.repeat(300) }] });
+      apiRequest.mockResolvedValueOnce({ body: new Response('bytes').body });
+      await expect(runApiCommand('save-attachments', ['m-1', directory], {})).rejects.toThrow();
+      expect(await readdir(directory)).toEqual([]);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  test('removes partial files when an attachment stream fails', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'mailctl-broken-attachment-'));
+    try {
+      apiRequest.mockResolvedValueOnce({ attachments: [{ attachment_id: 'a-1', original_filename: 'broken.txt' }] });
+      let sentChunk = false;
+      const body = new ReadableStream({
+        pull(controller) {
+          if (sentChunk) controller.error(new Error('download interrupted'));
+          else {
+            sentChunk = true;
+            controller.enqueue(new TextEncoder().encode('partial'));
+          }
+        },
+      });
+      apiRequest.mockResolvedValueOnce({ body });
+      await expect(runApiCommand('save-attachments', ['m-1', directory], {})).rejects.toThrow('download interrupted');
+      expect(await readdir(directory)).toEqual([]);
     } finally {
       await rm(directory, { recursive: true, force: true });
     }

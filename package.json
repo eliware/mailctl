@@ -33,7 +33,7 @@
         "node": ">=26"
     },
     "devDependencies": {
-        "@eliware/test": "^5.0.0"
+        "@eliware/test": "^3.0.0"
     },
     "jest": {
         "testEnvironment": "node",
@@ -57,22 +57,27 @@
         "@eliware/common": "^2.0.0"
     },
     "prettier": {
-      "printWidth": 100,
-      "tabWidth": 2,
-      "useTabs": false,
-      "semi": true,
-      "singleQuote": false,
-      "quoteProps": "as-needed",
-      "jsxSingleQuote": false,
-      "trailingComma": "all",
-      "bracketSpacing": true,
-      "bracketSameLine": false,
-      "arrowParens": "always",
-      "proseWrap": "preserve",
-      "endOfLine": "lf"
+        "printWidth": 100,
+        "tabWidth": 2,
+        "useTabs": false,
+        "semi": true,
+        "singleQuote": false,
+        "quoteProps": "as-needed",
+        "jsxSingleQuote": false,
+        "trailingComma": "all",
+        "bracketSpacing": true,
+        "bracketSameLine": false,
+        "arrowParens": "always",
+        "proseWrap": "preserve",
+        "endOfLine": "lf"
     },
     "eliware": {
-      "id": "E-1362",
-      "apply": ["general", "application", "cli", "npm-published"]
+        "id": "E-1362",
+        "apply": [
+            "general",
+            "application",
+            "cli",
+            "npm-published"
+        ]
     }
 }

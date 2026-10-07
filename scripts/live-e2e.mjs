@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -32,7 +32,6 @@ function assertOk(result, label) {
 
 const temp = await mkdtemp(join(tmpdir(), 'mailctl-live-e2e-'));
 const attachment = join(temp, 'e2e.txt');
-const saved = join(temp, 'saved');
 await writeFile(attachment, 'mailctl-live-e2e-attachment');
 const subject = `mailctl live e2e ${Date.now()}`;
 let outboundId;

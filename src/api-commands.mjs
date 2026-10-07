@@ -1,8 +1,10 @@
 import { apiRequest } from './api.mjs';
 import { output } from './output.mjs';
 import { openAsBlob } from 'node:fs';
-import { access, mkdir, writeFile } from 'node:fs/promises';
-import { basename, join } from 'node:path';
+import { open, mkdir, rm } from 'node:fs/promises';
+import { join, parse } from 'node:path';
+import { Readable, Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { readJsonInput } from './json-input.mjs';
 
 function query(options, keys) {
@@ -21,15 +23,54 @@ async function many(ids, path, options) {
   return output(results.length === 1 ? results[0] : results, options);
 }
 
-async function uniquePath(directory, filename) {
-  const extension = basename(filename).includes('.') ? `.${basename(filename).split('.').pop()}` : '';
-  const stem = extension ? basename(filename).slice(0, -extension.length) : basename(filename);
-  let candidate = join(directory, filename);
-  let suffix = 2;
+function safeFilename(value, fallback) {
+  let filename = String(value ?? fallback).replaceAll('\\', '/').split('/').at(-1);
+  filename = [...filename].map((character) => {
+    const code = character.charCodeAt(0);
+    return code < 32 || '<>:"|?*'.includes(character) ? '_' : character;
+  }).join('').replace(/[. ]+$/g, '');
+  if (!filename || filename === '.' || filename === '..') filename = fallback;
+  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(filename)) filename = `_${filename}`;
+  return filename;
+}
+
+function numberedFilename(filename, suffix) {
+  const { name, ext } = parse(filename);
+  return suffix === 1 ? filename : `${name}-${suffix}${ext}`;
+}
+
+async function saveResponse(directory, filename, response) {
+  const source = response.body ? Readable.fromWeb(response.body) : Readable.from([]);
+  let byteCount = 0;
+  const bytes = new Transform({
+    transform(chunk, _encoding, callback) {
+      byteCount += chunk.length;
+      callback(null, chunk);
+    },
+  });
+  let suffix = 1;
   while (true) {
-    try { await access(candidate); } catch { return candidate; }
-    candidate = join(directory, `${stem}-${suffix}${extension}`);
-    suffix += 1;
+    const target = join(directory, numberedFilename(filename, suffix));
+    let handle;
+    try {
+      handle = await open(target, 'wx', 0o600);
+    } catch (error) {
+      if (error.code === 'EEXIST') {
+        suffix += 1;
+        continue;
+      }
+      throw error;
+    }
+    try {
+      await pipeline(source, bytes, handle.createWriteStream());
+      return { path: target, bytes: byteCount };
+    } catch (error) {
+      try {
+        await handle.close();
+      } catch { /* The stream can close the handle before cleanup. */ }
+      await rm(target, { force: true });
+      throw error;
+    }
   }
 }
 
@@ -80,11 +121,9 @@ export async function runApiCommand(command, ids, options) {
     const saved = [];
     for (const attachment of message.attachments ?? []) {
       const response = await apiRequest(`/api/attachments/${encodeURIComponent(attachment.attachment_id)}`, { raw: true });
-      const filename = basename(attachment.original_filename ?? attachment.attachment_id);
-      const target = await uniquePath(directory, filename);
-      const content = Buffer.from(await response.arrayBuffer());
-      await writeFile(target, content);
-      saved.push({ attachmentId: attachment.attachment_id, path: target, bytes: content.length });
+      const filename = safeFilename(attachment.original_filename, attachment.attachment_id);
+      const file = await saveResponse(directory, filename, response);
+      saved.push({ attachmentId: attachment.attachment_id, ...file });
     }
     return output(saved, options);
   }
