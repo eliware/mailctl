@@ -1,83 +1,107 @@
 {
-    "name": "@eliware/mailctl",
-    "version": "3.0.0",
-    "description": "Non-interactive mail service REST API CLI for humans and AI agents.",
-    "keywords": [
-        "mail",
-        "email",
-        "cli",
-        "rest-api",
-        "mail-service",
-        "ai-agents"
+  "name": "@eliware/mailctl",
+  "version": "12.0.0",
+  "type": "module",
+  "description": "Non-interactive mail service REST API CLI for humans and AI agents.",
+  "keywords": [
+    "mail",
+    "email",
+    "cli",
+    "rest-api",
+    "mail-service",
+    "ai-agents"
+  ],
+  "private": false,
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "bin": {
+    "mailctl": "bin/mailctl.mjs"
+  },
+  "files": [
+    "src/",
+    "docs/",
+    "README.md",
+    "AGENTS.md",
+    "LICENSE",
+    "RELEASE_NOTES.md",
+    "bin/",
+    "specs/",
+    "examples/",
+    ".env.example"
+  ],
+  "scripts": {
+    "test": "eliware-test",
+    "lint": "eliware-test --lint",
+    "audit": "eliware-test --audit",
+    "format": "eliware-test --format",
+    "format:check": "eliware-test --format-check",
+    "pack": "eliware-test --pack",
+    "test:live": "node bin/live-e2e.mjs"
+  },
+  "engines": {
+    "node": ">=26"
+  },
+  "dependencies": {
+    "@eliware/common": "^12.0.1"
+  },
+  "devDependencies": {
+    "@eliware/test": "^12.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.mjs"
     ],
-    "type": "module",
-    "private": false,
-    "bin": {
-        "mailctl": "mailctl.mjs"
-    },
-    "files": [
-        "mailctl.mjs",
-        "src",
-        "README.md",
-        "LICENSE"
+    "collectCoverageFrom": [
+      "src/**/*.mjs"
     ],
-    "scripts": {
-        "test": "eliware-test",
-        "lint": "eliware-test --lint",
-        "audit": "npm audit --omit=dev --audit-level=moderate",
-        "pack": "npm pack --dry-run",
-        "pack:check": "npm run pack",
-        "test:live": "node scripts/live-e2e.mjs"
-    },
-    "engines": {
-        "node": ">=26"
-    },
-    "devDependencies": {
-        "@eliware/test": "^3.0.0"
-    },
-    "jest": {
-        "testEnvironment": "node",
-        "testMatch": [
-            "**/?(*.)+(spec|test).mjs"
-        ]
-    },
-    "publishConfig": {
-        "access": "public"
-    },
-    "repository": {
-        "type": "git",
-    "url": "git+https://github.com/eliware/mailctl.git"
-    },
-    "homepage": "https://github.com/eliware/mailctl#readme",
-    "bugs": {
-        "url": "https://github.com/eliware/mailctl/issues"
-    },
-    "license": "MIT",
-    "dependencies": {
-        "@eliware/common": "^2.0.0"
-    },
-    "prettier": {
-        "printWidth": 100,
-        "tabWidth": 2,
-        "useTabs": false,
-        "semi": true,
-        "singleQuote": false,
-        "quoteProps": "as-needed",
-        "jsxSingleQuote": false,
-        "trailingComma": "all",
-        "bracketSpacing": true,
-        "bracketSameLine": false,
-        "arrowParens": "always",
-        "proseWrap": "preserve",
-        "endOfLine": "lf"
-    },
-    "eliware": {
-        "id": "E-1362",
-        "apply": [
-            "general",
-            "application",
-            "cli",
-            "npm-published"
-        ]
+    "coverageReporters": [
+      "text",
+      "json-summary"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
     }
+  },
+  "prettier": {
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": false,
+    "quoteProps": "as-needed",
+    "jsxSingleQuote": false,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "bracketSameLine": false,
+    "arrowParens": "always",
+    "proseWrap": "preserve",
+    "endOfLine": "lf"
+  },
+  "author": "Eliware <eliware@eliware.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eliware/mailctl.git"
+  },
+  "homepage": "https://github.com/eliware/mailctl#readme",
+  "bugs": {
+    "url": "https://github.com/eliware/mailctl/issues"
+  },
+  "eliware": {
+    "id": "E-1362",
+    "apply": [
+      "general",
+      "application",
+      "cli",
+      "npm-published"
+    ]
+  }
 }

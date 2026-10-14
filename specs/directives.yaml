@@ -1,0 +1,44 @@
+version: "12.0"
+description: Defines requirements for the mailctl command-line client.
+directives:
+  - id: E-1362.0
+    dos:
+      - Use the Mail REST API for mail operations.
+      - Keep database, RabbitMQ, and shared file access in the Mail service.
+      - Emit JSON for command results and errors.
+    donts:
+      - Do not connect directly to the Mail database, RabbitMQ, or shared file storage.
+      - Do not prompt for interactive input.
+    children:
+      - id: E-1362.0.0
+        dos:
+          - Read and change mail data through the authenticated REST API.
+          - Require owner scope for mailbox operations.
+          - Return the API result as JSON.
+        donts:
+          - Do not access another mailbox without its owner scope.
+          - Do not expose credentials in output.
+      - id: E-1362.0.1
+        dos:
+          - Read message and attachment data through the REST API.
+          - Save attachment files without overwriting existing files.
+          - Remove partial files after a failed download.
+        donts:
+          - Do not read attachment files from shared storage directly.
+          - Do not overwrite a local file during attachment export.
+      - id: E-1362.0.2
+        dos:
+          - Retry an uncertain recipient only after explicit confirmation.
+          - Show that an uncertain retry can deliver a duplicate message.
+          - Preserve the earlier delivery attempt and result.
+        donts:
+          - Do not retry an uncertain delivery without confirmation.
+          - Do not present uncertain delivery as confirmed failure.
+      - id: E-1362.0.3
+        dos:
+          - Load API settings from supported environment or local configuration.
+          - Keep caller mailbox scope separate from service credentials.
+          - Fail when required API settings or mailbox scope are missing.
+        donts:
+          - Do not commit credentials or private configuration.
+          - Do not put credentials in URLs or logs.

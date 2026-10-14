@@ -83,9 +83,9 @@ repository.
    requested local directory.
 8. **Complete.** Remove all direct-service code, migration code, fallback routing, and
    direct-service dependencies.
-10. **Complete.** Update help text, errors, configuration validation, and documentation for
-    API mode.
-11. **Mocked tests complete; dev integration pending.** Add mocked API contract tests and a dev integration test covering reads,
+9. **Complete.** Update help text, errors, configuration validation, and documentation for
+   API mode.
+10. **Mocked tests complete; dev integration pending.** Add mocked API contract tests and a dev integration test covering reads,
     sends, attachments, deletion, retry/cancel, domains, and status.
 
 ## Verification

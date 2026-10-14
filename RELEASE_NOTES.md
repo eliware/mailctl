@@ -1,97 +1,101 @@
-# Release notes
+# Release Notes
+
+## Unreleased
+
+### Added
+
+- Added manual retry for uncertain recipient delivery after explicit confirmation.
+- Added recipient delivery status and attempt details to outbound inspection.
+
+## 12.0.0 — 2026-10-14
+
+### Changed
+
+- Updated dependencies and repository validation workflows.
+- Aligned package metadata and documentation with current Eliware conventions.
+
+### Fixed
+
+- Split mail API commands into focused modules.
 
 ## 3.0.0 — 2026-10-07
 
-### Attachment downloads
+### Added
 
-- Streamed API attachment downloads to disk.
-- Sanitized file names and avoided overwriting existing files.
-- Removed partial files when a download stream fails.
+- Added safe API attachment downloads and the local API contract test harness.
+- Added user guides, examples, and indexed specifications.
 
-### Validation and documentation
+### Changed
 
-- Added a local API end-to-end test harness.
-- Added user guides, troubleshooting steps, examples, and specifications.
-- Updated test tooling and refreshed the package lock file.
+- Updated test tooling and package dependencies.
+
+### Fixed
+
+- Sanitized attachment file names and prevented accidental file overwrite.
+- Removed partial attachment files after a failed download.
 
 ## 2.1.1 — 2026-08-30
 
 ### Fixed
 
-- Injected the caller’s `MAIL_OWNER_ADDRESS` into ordinary send requests.
-- Corrected caller-project owner-address precedence over installation settings.
-
-### Validation
-
-- Live health, inbox, sent, search, domains, and outbound inspection checks
-  passed. Inbound receipt was unavailable from the self-send smoke test, and
-  live attachment operations were not exercised.
+- Added the caller's `MAIL_OWNER_ADDRESS` to send requests.
+- Applied caller configuration before installation configuration.
 
 ## 2.1.0 — 2026-08-30
 
-### Agent UX
+### Added
 
-- Added JSON-native `inbox`, `reply`, `reply-all`, and `forward` workflows.
-- Added inline, stdin, and `--input FILE` JSON request handling for mutations.
-- Standardized command output and errors as JSON; `--json` is an accepted
-  no-op.
-- Added caller-project `MAIL_OWNER_ADDRESS` loading with fail-closed mailbox
-  filtering.
-- Preserved existing attachment, retry, cancel, delete, search, status,
-  health, domain, thread, and outbound inspection capabilities.
-- Added API passthrough coverage for owner-scoped reads and unified send,
-  reply, and forward requests.
+- Added JSON-native inbox, reply, reply-all, and forward commands.
+- Added inline, standard input, and file input for JSON requests.
+- Added owner-scoped mailbox commands and API contract tests.
+
+### Changed
+
+- Standardized command output and errors as JSON.
+- Kept `--json` as a no-op because JSON output is always enabled.
 
 ## 2.0.0 — 2026-08-30
 
-### Breaking
+### Breaking changes
 
-- Mailctl now uses the authenticated Mail REST API for every command.
-- Removed direct MariaDB, RabbitMQ, shared-storage, and migration support.
-- Removed legacy service configuration variables and direct-service dependencies.
+- Switched all mailctl commands to the authenticated Mail REST API.
+- Removed direct database, RabbitMQ, shared storage, and migration access.
 
 ### Added
 
 - Added API configuration through `MAIL_API_URL` and `MAIL_API_TOKEN`.
-- Added API contract coverage for reads, sends, attachments, search, deletion,
-  retry/cancel, domains, and health readiness.
+- Added API contract tests for reads, sends, attachments, and mailbox actions.
 
 ### Security
 
-- API credentials are sent only as bearer authorization headers and are
-  redacted from transport errors.
+- Sent API credentials only in bearer authorization headers.
+- Redacted credentials from transport errors.
 
 ## 1.2.8 — 2026-08-20
 
-- Added `outbound-status` diagnostics for per-recipient delivery state, latest
-  SMTP attempts, elapsed attempt age, and stale delivery detection.
-- Added the `MAIL_OUTBOUND_STALE_DELIVERY_MS` configuration threshold for
-  outbound delivery diagnostics.
+### Added
+
+- Added `outbound-status` for recipient delivery state and SMTP attempt details.
+- Added `MAIL_OUTBOUND_STALE_DELIVERY_MS` for stale delivery checks.
 
 ## 1.2.7 — 2026-08-19
 
-- Added durable event-outbox schema migration support for reliable mail event publication.
-- Added Discord correlation and deletion provenance schema migrations for outbound mail.
-- Enqueued soft-delete events for inbound and outbound messages.
-- Added the `npm run audit` production dependency audit command.
-- Restored migration and deletion coverage to strict 100×4.
+### Added
+
+- Added migrations for event outbox and message tracking data.
+
+### Changed
+
+- Added events for inbound and outbound soft deletes.
+
+### Fixed
+
+- Restored migration and deletion coverage to 100 percent.
 
 ## 1.2.5 — 2026-08-19
 
-- Moved versioned database migrations and the migration runner into mailctl.
+### Added
+
+- Added versioned database migrations and the migration runner.
 - Added the confirmed `mailctl migrate` command.
-- Added outbound soft-delete support.
-
-## 1.2.0 — 2026-08-18
-
-
-## Unreleased
-
-- Refactored the CLI into independently testable source modules.
-- Added per-user configuration loading from `~/.config/mailctl/.env`.
-- Added baseline tests for every source module and improved coverage to about 50%.
-- Added npm package metadata and a global `mailctl` executable entry.
-- Added command-specific, agent-oriented help and `--version` support.
-- Added CI validation on pushes to `main` and pull requests.
-- Added npm publication with provenance for `v*` tags.
-- Added safe `.env.example` configuration documentation.
+- Added outbound soft delete support.
