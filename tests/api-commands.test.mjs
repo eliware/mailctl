@@ -124,6 +124,39 @@ describe('API command routing', () => {
     expect(apiRequest).toHaveBeenCalledWith('/api/sent/out-1/cancel', { method: 'POST' });
     expect(apiRequest).toHaveBeenCalledWith('/api/sent/out-2/cancel', { method: 'POST' });
   });
+  test('requires duplicate-risk confirmation for an uncertain delivery retry', async () => {
+    await expect(runApiCommand('retry-uncertain', [], {
+      inputJson: { outbound_id: 'out-1' },
+    })).rejects.toMatchObject({ code: 'UNCERTAIN_DELIVERY_REQUIRED' });
+    await expect(runApiCommand('retry-uncertain', [], {
+      inputJson: { outbound_id: 'out-1', delivery_id: 'delivery-1' },
+    })).rejects.toMatchObject({ code: 'DUPLICATE_RISK_CONFIRMATION_REQUIRED' });
+    await runApiCommand('retry-uncertain', [], {
+      inputJson: {
+        outbound_id: 'out/1',
+        delivery_id: 'delivery-1',
+        confirm_duplicate_risk: true,
+      },
+    });
+    expect(apiRequest).toHaveBeenCalledWith('/api/sent/out%2F1/retry-uncertain', {
+      method: 'POST',
+      body: { delivery_id: 'delivery-1', confirm_duplicate_risk: true },
+    });
+    await runApiCommand('retry-uncertain', [], {
+      inputJson: {
+        outbound_id: 'out-1',
+        delivery_id: 'delivery-1',
+        confirm_duplicate_risk: true,
+      },
+      'dry-run': true,
+    });
+    expect(apiRequest).toHaveBeenCalledTimes(1);
+    expect(output).toHaveBeenLastCalledWith(expect.objectContaining({
+      dryRun: true,
+      action: 'retry-uncertain',
+      duplicateRiskConfirmed: true,
+    }), expect.anything());
+  });
   test('accepts JSON requests from input files for send, reply, and retry', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'mailctl-json-commands-'));
     try {

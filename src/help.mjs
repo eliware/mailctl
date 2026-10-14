@@ -9,6 +9,7 @@ export const commandHelp = {
   search: 'Search the scoped mailbox.\n\nUSAGE\n  mailctl search QUERY\n',
   thread: 'Follow message threading headers.\n\nUSAGE\n  mailctl thread MESSAGE_ID\n',
   retry: 'Republish retryable outbound deliveries from a JSON request.\n\nUSAGE\n  mailctl retry\n  JSON: {"ids":["OUTBOUND_ID"]}\n',
+  'retry-uncertain': 'Retry one uncertain recipient after you confirm duplicate risk.\n\nUSAGE\n  mailctl retry-uncertain\n  JSON: {"outbound_id":"OUTBOUND_ID","delivery_id":"DELIVERY_ID","confirm_duplicate_risk":true}\n',
   cancel: 'Cancel queued outbound delivery work from a JSON request.\n\nUSAGE\n  mailctl cancel\n  JSON: {"ids":["OUTBOUND_ID"]}\n',
   health: 'Check mail service API readiness.\n\nUSAGE\n  mailctl health\n',
   attachments: 'List attachment metadata for a message.\n\nUSAGE\n  mailctl attachments MESSAGE_ID\n',
@@ -30,7 +31,7 @@ export function help(positionals = []) {
 Commands:
   inbox, sent, read, send, reply, reply-all, forward
   list, headers, sent-read, outbound-status, search, thread
-  retry, cancel, health, attachments, save-attachments
+  retry, retry-uncertain, cancel, health, attachments, save-attachments
   save-sent-attachments, delete, domains
 
 Options:

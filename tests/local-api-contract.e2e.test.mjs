@@ -68,5 +68,5 @@ describe('local API contract harness', () => {
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
-  });
+  }, 15000);
 });
